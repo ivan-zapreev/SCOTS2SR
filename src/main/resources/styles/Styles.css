@@ -1,0 +1,33 @@
+.button {
+    -fx-font-weight: bold;
+}
+
+.progress-indicator .percentage {
+    -fx-fill:null;
+}
+
+.progress-indicator  {
+    -fx-padding: 0 0 0 0;
+}
+
+.tab-pane *.tab-header-background {
+    -fx-background-color: lightblue;
+}
+
+.scroll-pane {
+   -fx-background-color: transparent;
+   -fx-padding: 5px;
+}
+
+.scroll-pane > .viewport {
+   -fx-background-color: transparent;
+}
+
+.split-pane {
+   -fx-background-color: transparent;
+}
+
+.tab-pane {
+    -fx-border-color: black;
+    -fx-border-width: 1px;
+}
