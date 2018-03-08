@@ -40,6 +40,21 @@ import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 public class DofVisualizer extends FitnessTracker {
 
     /**
+     * This functional interface is needed for fitness change call-backs
+     */
+    @FunctionalInterface
+    public interface FitnessChange {
+
+        /**
+         * The Fitness change notification interface
+         *
+         * @param req_ftn the requested fitness values
+         * @param ex_ftn the exact fitness values
+         */
+        public void change(final double[] req_ftn, final double[] ex_ftn);
+    }
+
+    /**
      * The animation class that is used to update the fitness value
      */
     private class ChartUpdater extends AnimationTimer {
@@ -69,6 +84,7 @@ public class DofVisualizer extends FitnessTracker {
     private final GridView m_grid_view;
     private final FitnessChart m_req_chart;
     private final FitnessChart m_ex_chart;
+    private FitnessChange m_ftn_change;
 
     /**
      * The basic constructor
@@ -107,6 +123,7 @@ public class DofVisualizer extends FitnessTracker {
         this.m_grid_view = grid_view;
         this.m_req_chart = req_chart;
         this.m_ex_chart = ex_chart;
+        this.m_ftn_change = null;
     }
 
     @Override
@@ -154,14 +171,33 @@ public class DofVisualizer extends FitnessTracker {
     }
 
     /**
+     * Allows to set a new fitness change listener
+     *
+     * @param ftn_change the new fitness change listener
+     * @return the previously set fitness change listener
+     */
+    public FitnessChange set_ftn_change_listener(final FitnessChange ftn_change) {
+        final FitnessChange tmp_ftn_change = m_ftn_change;
+        m_ftn_change = ftn_change;
+        return tmp_ftn_change;
+    }
+
+    /**
      * Update the fitness in the user interface
      */
     private synchronized void update_fitness() {
         //Re-compute fitness and plot data
         if (m_is_update && re_compute_fitness()) {
+            //Get the fitness values
+            final double[] req_ftn = get_req_fitness();
+            final double[] ex_ftn = get_ex_fitness();
+            //Fitness update
+            if (m_ftn_change != null) {
+                m_ftn_change.change(req_ftn, ex_ftn);
+            }
             //Schedule the chart updates
-            m_req_chart.schedule_update(get_req_fitness());
-            m_ex_chart.schedule_update(get_ex_fitness());
+            m_req_chart.schedule_update(req_ftn);
+            m_ex_chart.schedule_update(ex_ftn);
             //Mark the update as done
             m_is_update = false;
         }

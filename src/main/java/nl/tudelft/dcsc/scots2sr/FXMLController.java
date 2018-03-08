@@ -70,6 +70,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import nl.tudelft.dcsc.scots2jni.FConfig;
+import nl.tudelft.dcsc.scots2sr.sr.AvgFilter;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessType;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.ProcessManagerConfig;
@@ -466,7 +467,25 @@ public class FXMLController implements Initializable {
                             (mgr) -> {
                                 count_finished_dofs(mgr);
                             });
-                    ProcessManager manager = new ProcessManager(config);
+                    final ProcessManager manager = new ProcessManager(config);
+                    //Add the population filter: Experimental
+                    /*final AvgFilter filter = new AvgFilter(1.0e-4, 300000);
+                    visualizer.set_ftn_change_listener(new DofVisualizer.FitnessChange() {
+                        @Override
+                        public void change(double[] req_ftn, double[] ex_ftn) {
+                            m_executor.submit(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (filter.is_trigger(ex_ftn[1])) {
+                                        filter.set_ftn_bound(ex_ftn[0]);
+                                        filter.start_filtering();
+                                        manager.filter_individuals(filter);
+                                        filter.stop_filtering();
+                                    }
+                                }
+                            });
+                        }
+                    });*/
                     m_managers.add(manager);
                     m_managers_act.add(manager);
                     dofTab.setContent(grid_pane);
