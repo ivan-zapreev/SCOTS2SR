@@ -19,7 +19,7 @@
                         <Button fx:id="m_load_btn" mnemonicParsing="false" onAction="#openFileSelection" text="Load" />
                         <Button fx:id="m_run_btn" disable="true" mnemonicParsing="false" onAction="#startRunning" text="Run" />
                         <Button fx:id="m_stop_btn" disable="true" mnemonicParsing="false" onAction="#stopRunning" text="Stop" />
-                        <Button fx:id="m_save_btn" disable="true" mnemonicParsing="false" text="Save" />
+                        <Button fx:id="m_save_btn" disable="true" mnemonicParsing="false" onAction="#saveFileSelection" text="Save" />
                         <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="3.0" />
                         <ProgressIndicator id="loading-ind" fx:id="m_load_ind" prefHeight="21.0" prefWidth="21.0" />
                   <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="0.0" />

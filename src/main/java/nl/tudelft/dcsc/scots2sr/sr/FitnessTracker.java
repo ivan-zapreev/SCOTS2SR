@@ -23,6 +23,8 @@ package nl.tudelft.dcsc.scots2sr.sr;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
@@ -101,6 +103,42 @@ public abstract class FitnessTracker implements GridObserver {
     public synchronized void kill_individual(final Individual old_ind) {
         //Remove an old individual from the grid
         m_pop_grid[old_ind.get_pos_x()][old_ind.get_pos_y()] = null;
+    }
+
+    private double get_actual_fitness(final Individual ind) {
+        return ((ExtendedFitness) ind.get_fitness()).get_actual_fitness();
+    }
+
+    @Override
+    public List<Individual> get_best_fit_ind() {
+        //Return the list of best fit individuals
+        final List<Individual> best_fit = new ArrayList<>();
+        for (int pos_x = 0; pos_x < m_size_x; ++pos_x) {
+            for (int pos_y = 0; pos_y < m_size_y; ++pos_y) {
+                final Individual ind = get_individual(pos_x, pos_y);
+                if (ind != null) {
+                    if (best_fit.isEmpty()) {
+                        if (ind.get_fitness() instanceof ExtendedFitness) {
+                            best_fit.add(ind);
+                        }
+                    } else {
+                        final double max_ftn = get_actual_fitness(best_fit.get(0));
+                        if (ind.get_fitness() instanceof ExtendedFitness) {
+                            final double new_ftn = get_actual_fitness(ind);
+                            if (new_ftn == max_ftn) {
+                                best_fit.add(ind);
+                            } else {
+                                if (new_ftn > max_ftn) {
+                                    best_fit.clear();
+                                    best_fit.add(ind);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return best_fit;
     }
 
     /**

@@ -21,6 +21,7 @@
  */
 package nl.tudelft.dcsc.scots2sr;
 
+import java.io.BufferedWriter;
 import nl.tudelft.dcsc.scots2sr.jni.ScotsFacade;
 import nl.tudelft.dcsc.scots2sr.ui.DofVisualizer;
 import nl.tudelft.dcsc.scots2sr.ui.FitnessChart;
@@ -31,6 +32,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +74,6 @@ import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import nl.tudelft.dcsc.scots2jni.FConfig;
-import nl.tudelft.dcsc.scots2sr.sr.AvgFilter;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessType;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.ProcessManagerConfig;
@@ -231,6 +234,80 @@ public class FXMLController implements Initializable {
         }
     }
 
+    /**
+     * Allows to get the smallest individual text from the list of individuals.
+     *
+     * @param inds the list of individuals
+     * @return the smallest text representation of the individuals among them
+     * all.
+     * @throws IllegalStateException in case the list of individuals is empty
+     */
+    private String get_shortest_candidate(List<Individual> inds) throws IllegalStateException {
+        String min_ind_str = "";
+        if (inds.isEmpty()) {
+            throw new IllegalStateException("The best individuals list is emty!");
+        } else {
+            for (Individual ind : inds) {
+                final String ind_str = ind.get_expr().get(0).to_text();
+                if (min_ind_str.isEmpty()) {
+                    min_ind_str = ind_str;
+                } else {
+                    final String ind_str_trm = ind_str.trim();
+                    if (min_ind_str.length() > ind_str_trm.length()) {
+                        min_ind_str = ind_str_trm;
+                    }
+                }
+            }
+        }
+        return min_ind_str;
+    }
+
+    private void start_saving(final String full_file_name) {
+        enable_ctrls_load(true, false);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                try {
+                    //Go through the Managers and get the best fit controllers
+                    Path file_path = Paths.get(full_file_name);
+                    try (BufferedWriter writer = Files.newBufferedWriter(file_path)) {
+                        for (ProcessManager mgr : m_managers) {
+                            LOGGER.log(Level.FINE, "Getting the dof's best fit individuals");
+                            final List<Individual> inds = mgr.get_best_fit_ind();
+                            LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
+                            final String candidate = get_shortest_candidate(inds);
+                            LOGGER.log(Level.FINE, "The shortest one is {0}", candidate);
+                            writer.write(candidate + "\n");
+                            LOGGER.log(Level.FINE, "The individual is stored");
+                            writer.flush();
+                        }
+                    }
+                    //ToDo: Safe the symbolic controllers into a file
+                    //ToDo: Get the unsafe points and store them as a BDD.
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            enable_ctrls_load(false, true);
+                        }
+                    });
+                } catch (FileNotFoundException | IllegalStateException ex) {
+                    final String msg = ex.getMessage();
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Alert alert = new Alert(AlertType.ERROR,
+                                    "Failed string the controller: " + msg);
+                            alert.show();
+                            enable_ctrls_load(false, false);
+                        }
+                    });
+                }
+                return null;
+            }
+        };
+        m_executor.submit(task);
+    }
+
     private void start_loading(final String full_file_name) {
         enable_ctrls_load(true, false);
 
@@ -319,7 +396,6 @@ public class FXMLController implements Initializable {
      * Disables the interface when started running GP
      */
     private void enable_ctrls_run(final boolean is_start, final boolean is_ok, final boolean is_stop_mgrs) {
-
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start);
         m_stop_btn.setDisable(!is_start);
@@ -435,6 +511,7 @@ public class FXMLController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                m_managers.clear();
                 m_dof_tab.getTabs().clear();
                 m_progress_box.getChildren().clear();
                 IntStream.range(0, (m_num_dofs - num_ss_dofs)).forEachOrdered(mgr_id -> {
@@ -540,9 +617,21 @@ public class FXMLController implements Initializable {
     }
 
     @FXML
+    public void saveFileSelection(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Controller File");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Symbolic controller", "*.sym");
+        fileChooser.getExtensionFilters().add(extFilter);
+        File file = fileChooser.showSaveDialog(m_save_btn.getScene().getWindow());
+        if (file != null) {
+            start_saving(file.getPath());
+        }
+    }
+
+    @FXML
     public void openFileSelection(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Open Resource File");
+        fileChooser.setTitle("Open Controller File");
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("SCOTSv2.0 controller", "*.scs");
         fileChooser.getExtensionFilters().add(extFilter);
         File file = fileChooser.showOpenDialog(m_load_btn.getScene().getWindow());
