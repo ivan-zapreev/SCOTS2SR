@@ -24,6 +24,7 @@ package nl.tudelft.dcsc.scots2sr.jni;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tudelft.dcsc.scots2jni.Scots2JNI;
@@ -31,6 +32,7 @@ import nl.tudelft.dcsc.scots2jni.FConfig;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessComputerClass;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
+import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.instance.Loader;
 
 /**
@@ -118,4 +120,22 @@ public class ScotsFacade extends FitnessComputerClass {
             InvocationTargetException {
         return (Fitness) m_cf.invoke(null, class_name, mgr_id);
     }
+
+    /**
+     * Allows to store the unfit points for the resulting symbolic controller
+     *
+     * @param file_name the file name, without the extension (will be stored as
+     * a BDD)
+     * @param inds the manager-id to individual mapping, each manager id
+     * corresponds to the dof index, the list index must correspond to the
+     * manager id stored inside the given individual.
+     */
+    public void store_unfit_points(final String file_name,
+            final List<Individual> inds) {
+        //ToDo: Iterate over the individuals and check on that the manager id corresponds to the list index
+        //ToDo: For each individual we have one expression, each of which is to be compiled into a class
+        //ToDo: The expression class is to be extened with the scaling and shifting factors
+        //ToDo: The ordered list of class names with the resulting file name is to be sent through the JNI
+    }
+
 }

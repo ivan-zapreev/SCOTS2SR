@@ -37,7 +37,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -79,10 +81,28 @@ import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.ProcessManagerConfig;
 import nl.tudelft.dcsc.sr2jlib.ProcessManager;
 import nl.tudelft.dcsc.sr2jlib.SelectionType;
+import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
 import nl.tudelft.dcsc.sr2jlib.grammar.GrammarConfig;
 import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
+import nl.tudelft.dcsc.sr2jlib.instance.Creator;
 
 public class FXMLController implements Initializable {
+
+    private static class Pair<kT, vT> {
+
+        public final kT m_first;
+        public final vT m_second;
+
+        public Pair(final kT first, final vT second) {
+            m_first = first;
+            m_second = second;
+        }
+    }
+
+    //Stores the symbolic controller file name extension
+    private static final String SYM_FILE_NAME_EXT = "sym";
+    //Stores the symbolic controller file name template
+    private static final String SYM_FILE_TEMPL = "*." + SYM_FILE_NAME_EXT;
 
     //Stores the reference to the logger
     private static final Logger LOGGER = Logger.getLogger(FXMLController.class.getName());
@@ -173,10 +193,13 @@ public class FXMLController implements Initializable {
     private String m_max_mut_val;
     //Stores the number of loaded controller dofs
     private int m_num_dofs;
+    //Stores the grammer the last run was started with
+    private Grammar m_grammar;
 
     public FXMLController() {
         m_max_mut_val = "300000";
         m_num_dofs = 0;
+        m_grammar = null;
     }
 
     /**
@@ -193,13 +216,24 @@ public class FXMLController implements Initializable {
 
     private final ExecutorService m_executor = Executors.newFixedThreadPool(NUM_UI_WORK_THREADS);
 
+    private void enable_ctrls_safe(final boolean is_start) {
+        m_load_btn.setDisable(is_start);
+        m_run_btn.setDisable(is_start);
+        m_load_ind.setVisible(is_start);
+        m_save_btn.setDisable(is_start);
+        m_stop_btn.setDisable(true);
+
+        enable_non_btn_ctrls(is_start);
+
+        m_dims_cmb.setDisable(is_start);
+    }
+
     private void enable_ctrls_load(final boolean is_start, final boolean is_ok) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start || !is_ok);
         m_load_ind.setVisible(is_start);
         m_save_btn.setDisable(true);
         m_stop_btn.setDisable(true);
-        m_load_ind.setVisible(is_start);
 
         enable_non_btn_ctrls(is_start);
 
@@ -238,56 +272,70 @@ public class FXMLController implements Initializable {
      * Allows to get the smallest individual text from the list of individuals.
      *
      * @param inds the list of individuals
-     * @return the smallest text representation of the individuals among them
-     * all.
+     * @return the pair of individual and its prepared string representation.
      * @throws IllegalStateException in case the list of individuals is empty
      */
-    private String get_shortest_candidate(List<Individual> inds) throws IllegalStateException {
+    private Pair<Individual, String> get_best_ind(List<Individual> inds) throws IllegalStateException {
         String min_ind_str = "";
+        Individual min_ind = null;
+        LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
         if (inds.isEmpty()) {
             throw new IllegalStateException("The best individuals list is emty!");
         } else {
-            for (Individual ind : inds) {
-                final String ind_str = ind.get_expr().get(0).to_text();
+            for (int ind_idx = 0; ind_idx < inds.size(); ++ind_idx) {
+                final Individual ind = inds.get(ind_idx);
+                String ind_str = ind.get_expr().get(0).to_text();
+                for (int idx = 0; idx < m_grammar.get_num_vars(); ++idx) {
+                    ind_str = ind_str.replaceAll(Creator.get_var_name(idx), "x" + idx);
+                }
                 if (min_ind_str.isEmpty()) {
                     min_ind_str = ind_str;
+                    min_ind = ind;
                 } else {
                     final String ind_str_trm = ind_str.trim();
                     if (min_ind_str.length() > ind_str_trm.length()) {
                         min_ind_str = ind_str_trm;
+                        min_ind = ind;
                     }
                 }
             }
         }
-        return min_ind_str;
+        return new Pair<>(min_ind, min_ind_str);
     }
 
-    private void start_saving(final String full_file_name) {
-        enable_ctrls_load(true, false);
+    private void start_saving(final String ctrl_file_name) {
+        enable_ctrls_safe(true);
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 try {
-                    //Go through the Managers and get the best fit controllers
-                    Path file_path = Paths.get(full_file_name);
+                    List<Individual> inds = new ArrayList<>();
+                    //Go through the Managers, get the best fit controllers
+                    //save the symbolic controllers into a text file
+                    Path file_path = Paths.get(ctrl_file_name);
                     try (BufferedWriter writer = Files.newBufferedWriter(file_path)) {
                         for (ProcessManager mgr : m_managers) {
                             LOGGER.log(Level.FINE, "Getting the dof's best fit individuals");
-                            final List<Individual> inds = mgr.get_best_fit_ind();
-                            LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
-                            final String candidate = get_shortest_candidate(inds);
+                            final Pair<Individual, String> result = get_best_ind(mgr.get_best_fit_ind());
+                            final String candidate = result.m_second;
                             LOGGER.log(Level.FINE, "The shortest one is {0}", candidate);
                             writer.write(candidate + "\n");
                             LOGGER.log(Level.FINE, "The individual is stored");
                             writer.flush();
+                            //Store the individual for unfit points extraction
+                            inds.add(result.m_first);
                         }
                     }
-                    //ToDo: Safe the symbolic controllers into a file
-                    //ToDo: Get the unsafe points and store them as a BDD.
+                    //Get the symbolic controller file name without extension
+                    final String bad_file_name = ctrl_file_name.replaceAll(
+                            "\\." + SYM_FILE_NAME_EXT, "");
+                    //Store the unsafe points as a BDD.
+                    ((ScotsFacade) FitnessManager.inst()).store_unfit_points(bad_file_name, inds);
+                    //Re-enable the buttons
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            enable_ctrls_load(false, true);
+                            enable_ctrls_safe(false);
                         }
                     });
                 } catch (FileNotFoundException | IllegalStateException ex) {
@@ -298,7 +346,7 @@ public class FXMLController implements Initializable {
                             Alert alert = new Alert(AlertType.ERROR,
                                     "Failed string the controller: " + msg);
                             alert.show();
-                            enable_ctrls_load(false, false);
+                            enable_ctrls_safe(false);
                         }
                     });
                 }
@@ -507,6 +555,8 @@ public class FXMLController implements Initializable {
             Grammar.register_grammar(mgr_id, 0, grammar);
         });
         Grammar.prepare_grammars();
+        //Remember the grammar
+        m_grammar = grammar;
         //Constructe the interface elements
         Platform.runLater(new Runnable() {
             @Override
@@ -620,7 +670,8 @@ public class FXMLController implements Initializable {
     public void saveFileSelection(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Controller File");
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("Symbolic controller", "*.sym");
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
+                "Symbolic controller", SYM_FILE_TEMPL);
         fileChooser.getExtensionFilters().add(extFilter);
         File file = fileChooser.showSaveDialog(m_save_btn.getScene().getWindow());
         if (file != null) {
