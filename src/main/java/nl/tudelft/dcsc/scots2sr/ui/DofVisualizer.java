@@ -140,9 +140,9 @@ public class DofVisualizer extends FitnessTracker {
     }
 
     @Override
-    public synchronized void add_individual(final Individual ind) {
+    public synchronized void set(final Individual ind) {
         //Mark the change in the fitness tracker
-        super.add_individual(ind);
+        super.set(ind);
 
         //Update the Grid, take care of the case when the fitness ould not be computed
         final Fitness ftn = ind.get_fitness();
@@ -159,9 +159,9 @@ public class DofVisualizer extends FitnessTracker {
     }
 
     @Override
-    public synchronized void kill_individual(final Individual ind) {
+    public synchronized void remove(final Individual ind) {
         //Mark the change in the fitness tracker
-        super.kill_individual(ind);
+        super.remove(ind);
 
         //Update the Grid
         m_grid_view.clear_fitness(ind.get_pos_x(), ind.get_pos_y());

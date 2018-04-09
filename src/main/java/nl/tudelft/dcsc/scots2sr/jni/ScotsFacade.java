@@ -29,9 +29,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tudelft.dcsc.scots2jni.Scots2JNI;
 import nl.tudelft.dcsc.scots2jni.FConfig;
+import nl.tudelft.dcsc.scots2sr.sr.ScaledFitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessComputerClass;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
+import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
+import nl.tudelft.dcsc.sr2jlib.grammar.expr.Expression;
+import nl.tudelft.dcsc.sr2jlib.grammar.expr.FunctExpr;
+import nl.tudelft.dcsc.sr2jlib.grammar.expr.NConstExpr;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.instance.Loader;
 
@@ -46,14 +51,20 @@ public class ScotsFacade extends FitnessComputerClass {
     //Stores the reference to the logger
     private static final Logger LOGGER = Logger.getLogger(ScotsFacade.class.getName());
 
+    //Stores the unfit points file suffix for the BDD file name
+    public static final String UNFIT_FILE_SUFFIX = ".unfit";
+
     //Stores the class loader
-    private Loader m_loader;
+    private final Loader m_loader;
     //Stores the Scots2JNI loaded class
     private Class<?> m_class;
     //Stores the Scots2JNI class interface methods
     private Method m_load;
-    private Method m_cfg;
-    private Method m_cf;
+    private Method m_configure;
+    private Method m_compute_fitness;
+    private Method m_start_unfit_export;
+    private Method m_export_unfit_points;
+    private Method m_finish_unfit_export;
 
     /**
      * The private constructor for the singleton
@@ -67,8 +78,11 @@ public class ScotsFacade extends FitnessComputerClass {
                     new Object[]{name, m_class});
             LOGGER.log(Level.FINE, "The class instance of {0} is created", name);
             m_load = m_class.getMethod("load", String.class);
-            m_cfg = m_class.getMethod("configure", FConfig.class);
-            m_cf = m_class.getMethod("compute_fitness", String.class, int.class);
+            m_configure = m_class.getMethod("configure", FConfig.class);
+            m_compute_fitness = m_class.getMethod("compute_fitness", String.class, int.class);
+            m_start_unfit_export = m_class.getMethod("start_unfit_export");
+            m_export_unfit_points = m_class.getMethod("export_unfit_points", String.class, int.class);
+            m_finish_unfit_export = m_class.getMethod("finish_unfit_export", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException ex) {
             LOGGER.log(Level.SEVERE, "Failed when loading and instantiating "
                     + Scots2JNI.class.getName(), ex);
@@ -109,7 +123,7 @@ public class ScotsFacade extends FitnessComputerClass {
      */
     public void configure(final FConfig cfg) throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException {
-        m_cfg.invoke(null, cfg);
+        m_configure.invoke(null, cfg);
     }
 
     @Override
@@ -118,7 +132,7 @@ public class ScotsFacade extends FitnessComputerClass {
             throws IllegalStateException, IllegalArgumentException,
             ClassNotFoundException, IllegalAccessException,
             InvocationTargetException {
-        return (Fitness) m_cf.invoke(null, class_name, mgr_id);
+        return (Fitness) m_compute_fitness.invoke(null, class_name, mgr_id);
     }
 
     /**
@@ -129,13 +143,37 @@ public class ScotsFacade extends FitnessComputerClass {
      * @param inds the manager-id to individual mapping, each manager id
      * corresponds to the dof index, the list index must correspond to the
      * manager id stored inside the given individual.
+     * @throws java.lang.IllegalAccessException if the JNI illegal access occurs
+     * @throws java.lang.reflect.InvocationTargetException if the JNI target can
+     * not be invoked
      */
     public void store_unfit_points(final String file_name,
-            final List<Individual> inds) {
-        //ToDo: Iterate over the individuals and check on that the manager id corresponds to the list index
-        //ToDo: For each individual we have one expression, each of which is to be compiled into a class
-        //ToDo: The expression class is to be extened with the scaling and shifting factors
-        //ToDo: The ordered list of class names with the resulting file name is to be sent through the JNI
+            final List<Individual> inds) throws IllegalAccessException, InvocationTargetException {
+        //Start new unfit points export
+        m_start_unfit_export.invoke(null, new Object[]{});
+        //Iterate over the individuals
+        for (int idx = 0; idx < inds.size(); ++idx) {
+            final Individual ind = inds.get(idx);
+            final int mgr_id = ind.get_mgr_id();
+            //Check on that the manager id corresponds to the list index
+            if (mgr_id != idx) {
+                throw new IllegalArgumentException("Theindividual's manager index "
+                        + mgr_id + " must be equal to the array index " + idx);
+            }
+            //Export the unfit points, missuse the fintess compute class instance for that.
+            new FitnessComputerClass() {
+                @Override
+                public Fitness compute_fitness(int mgr_id, String class_name)
+                        throws IllegalStateException, IllegalArgumentException,
+                        ClassNotFoundException, IllegalAccessException,
+                        InvocationTargetException {
+                    m_export_unfit_points.invoke(null, class_name, mgr_id);
+                    return null;
+                }
+            }.compute_fitness(mgr_id, ind.get_expr_array());
+        }
+        //Finish new unfit points export
+        m_finish_unfit_export.invoke(null, file_name + UNFIT_FILE_SUFFIX);
     }
 
 }

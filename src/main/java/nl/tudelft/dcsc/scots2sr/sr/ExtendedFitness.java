@@ -21,6 +21,8 @@
  */
 package nl.tudelft.dcsc.scots2sr.sr;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 
 /**
@@ -30,6 +32,8 @@ import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
  * @author Dr. Ivan S. Zapreev
  */
 public class ExtendedFitness extends Fitness {
+
+    private static final Logger LOGGER = Logger.getLogger(ExtendedFitness.class.getName());
 
     //Stores the exact fitness
     private final double m_act_ftn;
@@ -67,14 +71,15 @@ public class ExtendedFitness extends Fitness {
     }
 
     @Override
-    public boolean equals(final Fitness other) {
+    public boolean is_equal(final Fitness other) {
         if (other != null) {
-            if ((this.m_ftn == other.get_fitness())
-                    && (other instanceof ExtendedFitness)) {
-                return (this.m_act_ftn == ((ExtendedFitness) other).m_act_ftn);
-            } else {
-                return false;
+            if (super.is_equal(other)) {
+                if ((other instanceof ExtendedFitness)) {
+                    final ExtendedFitness e_other = ((ExtendedFitness) other);
+                    return (this.m_act_ftn == e_other.m_act_ftn);
+                }
             }
+            return false;
         } else {
             throw new IllegalArgumentException("Attempting to compare withness with null!");
         }

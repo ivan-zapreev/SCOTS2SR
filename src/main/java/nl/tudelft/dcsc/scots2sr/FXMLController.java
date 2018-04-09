@@ -284,7 +284,7 @@ public class FXMLController implements Initializable {
         } else {
             for (int ind_idx = 0; ind_idx < inds.size(); ++ind_idx) {
                 final Individual ind = inds.get(ind_idx);
-                String ind_str = ind.get_expr().get(0).to_text();
+                String ind_str = ind.get_expr_list().get(0).to_text();
                 for (int idx = 0; idx < m_grammar.get_num_vars(); ++idx) {
                     ind_str = ind_str.replaceAll(Creator.get_var_name(idx), "x" + idx);
                 }
@@ -576,9 +576,9 @@ public class FXMLController implements Initializable {
                             m_load_ind.getPrefHeight(), m_load_ind.getPrefWidth(),
                             grid_pane, req_ftn_chart, ex_ftn_chart) {
                         @Override
-                        public synchronized void add_individual(final Individual ind) {
+                        public synchronized void set(final Individual ind) {
                             //Call the super class method first
-                            super.add_individual(ind);
+                            super.set(ind);
                             //Check if we need to stop
                             if (is_stop_found && (ind.get_fitness().is_one())) {
                                 //Stop the manager
