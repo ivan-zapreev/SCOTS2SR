@@ -21,7 +21,7 @@
                         <Button fx:id="m_stop_btn" disable="true" mnemonicParsing="false" onAction="#stopRunning" text="Stop" />
                         <Button fx:id="m_save_btn" disable="true" mnemonicParsing="false" onAction="#saveFileSelection" text="Save" />
                         <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="3.0" />
-                        <ProgressIndicator id="loading-ind" fx:id="m_load_ind" prefHeight="21.0" prefWidth="21.0" />
+                  <ProgressBar fx:id="m_main_prog_ind" prefHeight="20.0" prefWidth="41.0" progress="0.0" />
                   <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="0.0" />
                   <HBox fx:id="m_progress_box" prefHeight="27.0" prefWidth="665.0" />
                     </items>
@@ -35,7 +35,7 @@
                                 <Label alignment="CENTER" prefHeight="17.0" prefWidth="416.0" text="Grammar:" />
                         <AnchorPane prefHeight="534.0" prefWidth="190.0">
                            <children>
-                                      <TextArea fx:id="m_grammar_txt" prefHeight="226.0" prefWidth="234.0" text="R := [x1](D); [x1](V); [$abs(x1)](R)@0.1; [$sin(x1)](R); [$cos(x1)](R); [$sinh(x1)](R); [$cosh(x1)](R); [$tan(x1)](tR); [$tanh(x1)](R); [$acos(x1)](aR); [$asin(x1)](aR); [$sqrt(x1)](npR); [$cbrt(x1)](R); [$ceil(x1)](R); [$floor(x1)](R); [$log(x1)](lR); [$log10(x1)](lR); [$max(x1,x2)](R,R) ; [$min(x1,x2)](R, R) ; [$pow(x1,x2)](R,pI); [$signum(x1)](R); [-x1](R); [x1/x2](R,nR); [x1*x2](R,R); [x1+x2](R,R); [x1-x2](R,R) ; [x1 ? x2 : x3](B,R,R)&#10;&#10;B := [x1](L) @0.01; [x1!=x2](R,R); [x1==x2](R,R); [x1&lt;x2](R,R); [x1&lt;=x2](R,R); [x1&gt;x2](R,R); [x1&gt;=x2](R,R); [!x1](B) ; [x1&amp;&amp;x2](B,B); [x1||x2](B,B)&#10;&#10;//User defined by demand:&#10;aR :=  [x1 - $floor(x1)](R) //domain for acos/asin&#10;lR := [(x1&lt;1.0e-4)?1.0e-4:x1](pR) //domain for log/log10&#10;nR := [(x1==0.0)?1.0e-10:x1](R)  //non-zero real&#10;pR := [$abs(x1)](nR)  //positive real&#10;npR := [$abs(x1)](R)  //non-negative real&#10;pI := [$floor(1.0/x1)](nR) //positive integer&#10;tR := [x1 - $floor(x1/$PI)*$PI](R) //domain for tangent&#10;&#10;//Form: [function](arguments)@weight&#10;//&quot;$&quot; - is replaced with &quot;Math.&quot;&#10;//Arguments are comma separated&#10;//The variable arguments for the java code&#10;//are &quot;args[idx]&quot; where idx begins with 0&#10;//Standard argument types:&#10;//R - real expression&#10;//B - boolean expression&#10;//L - logical constant&#10;//V - variable&#10;//D - double constant&#10;" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                      <TextArea fx:id="m_grammar_txt" prefHeight="226.0" prefWidth="234.0" text="R := [x1](D); [x1](V); [$abs(x1)](R)@0.1; [$sin(x1)](R); [$cos(x1)](R); [$sinh(x1)](R); [$cosh(x1)](R); [$tan(x1)](tR); [$tanh(x1)](R); [$acos(x1)](aR); [$asin(x1)](aR); [$sqrt(x1)](npR); [$cbrt(x1)](R); [$ceil(x1)](R); [$floor(x1)](R); [$log(x1)](lR); [$log10(x1)](lR); [$max(x1,x2)](R,R) ; [$min(x1,x2)](R, R) ; [$pow(x1,x2)](R,pI); [$signum(x1)](R); [-x1](R); [x1/x2](R,nR); [x1*x2](R,R); [x1+x2](R,R); [x1-x2](R,R) ; [x1 ? x2 : x3](B,R,R)&#10;&#10;B := [x1](L) @0.01; [x1!=x2](R,R); [x1==x2](R,R); [x1&lt;x2](R,R); [x1&lt;=x2](R,R); [x1&gt;x2](R,R); [x1&gt;=x2](R,R); [!x1](B) ; [x1&amp;&amp;x2](B,B); [x1||x2](B,B)&#10;&#10;//User defined by demand:&#10;aR :=  [x1 - $floor(x1)](R) //domain for acos/asin&#10;lR := [(x1&lt;1.0e-4)?1.0e-4:x1](pR) //domain for log/log10&#10;nR := [(x1==0.0)?1.0e-10:x1](R)  //non-zero real&#10;pR := [$abs(x1)](nR)  //positive real&#10;npR := [$abs(x1)](R)  //non-negative real&#10;pI := [$floor(1.0/x1)](nR) //positive integer&#10;tR := [x1 - $floor(x1/$PI)*$PI](R) //domain for tangent&#10;&#10;//Form: [function](arguments)@weight&#10;//&quot;$&quot; - is replaced with &quot;Math.&quot;&#10;//Arguments are comma separated&#10;//The variable arguments for the java code&#10;//are &quot;args[idx]&quot; where idx begins with 0&#10;//Standard argument types:&#10;//R - real expression&#10;//B - boolean expression&#10;//L - logical constant&#10;//V - variable&#10;//D - double constant&#10;//F - float constant" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                      </children>
@@ -338,6 +338,18 @@
                                  <children>
                                     <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" />
                                     <CheckBox fx:id="m_is_child_lim_cbx" mnemonicParsing="false" text="Child life limits" GridPane.columnIndex="1" />
+                                 </children>
+                                 <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                 </columnConstraints>
+                                 <rowConstraints>
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                 </rowConstraints>
+                              </GridPane>
+                              <GridPane>
+                                 <children>
+                                    <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" />
                                  </children>
                                  <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />

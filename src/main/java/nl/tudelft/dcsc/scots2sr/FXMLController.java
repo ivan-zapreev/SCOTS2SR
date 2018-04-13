@@ -28,6 +28,8 @@ import nl.tudelft.dcsc.scots2sr.ui.FitnessChart;
 import nl.tudelft.dcsc.scots2sr.ui.GridView;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -37,9 +39,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,7 +69,7 @@ import javafx.scene.chart.StackedAreaChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
@@ -84,7 +85,6 @@ import nl.tudelft.dcsc.sr2jlib.SelectionType;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
 import nl.tudelft.dcsc.sr2jlib.grammar.GrammarConfig;
 import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
-import nl.tudelft.dcsc.sr2jlib.instance.Creator;
 
 public class FXMLController implements Initializable {
 
@@ -99,6 +99,8 @@ public class FXMLController implements Initializable {
         }
     }
 
+    //Stores the library file property name
+    private static final String LIB_FILE_NAME_PROP = "Native Library Name";
     //Stores the symbolic controller file name extension
     private static final String SYM_FILE_NAME_EXT = "sym";
     //Stores the symbolic controller file name template
@@ -168,6 +170,8 @@ public class FXMLController implements Initializable {
     @FXML
     private CheckBox m_is_child_lim_cbx;
     @FXML
+    private CheckBox m_is_avoid_equal_cbx;
+    @FXML
     private TextField m_min_ch_cnt_txt;
     @FXML
     private TextField m_max_ch_cnt_txt;
@@ -185,7 +189,7 @@ public class FXMLController implements Initializable {
     @FXML
     private TabPane m_dof_tab;
     @FXML
-    private ProgressIndicator m_load_ind;
+    private ProgressBar m_main_prog_ind;
     @FXML
     private HBox m_progress_box;
 
@@ -193,13 +197,45 @@ public class FXMLController implements Initializable {
     private String m_max_mut_val;
     //Stores the number of loaded controller dofs
     private int m_num_dofs;
-    //Stores the grammer the last run was started with
-    private Grammar m_grammar;
+
+    //Stores the properties file
+    private final File m_props_file;
+    //Stores the properties
+    private final Properties m_props;
 
     public FXMLController() {
         m_max_mut_val = "300000";
         m_num_dofs = 0;
-        m_grammar = null;
+        m_props_file = new File("config.properties");
+        m_props = new Properties();
+    }
+
+    /**
+     * Allows to load the properties from file
+     */
+    private void load_properties() {
+        try {
+            try (FileReader reader = new FileReader(m_props_file)) {
+                m_props.load(reader);
+            }
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Unable to load config file: {0}",
+                    m_props_file.getName());
+        }
+    }
+
+    /**
+     * Allows to store properties into file
+     */
+    private void save_properties() {
+        try {
+            try (FileWriter writer = new FileWriter(m_props_file)) {
+                m_props.store(writer, "Settings");
+            }
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Unable to save config file: "
+                    + m_props_file.getName(), ex);
+        }
     }
 
     /**
@@ -210,16 +246,19 @@ public class FXMLController implements Initializable {
         m_executor.shutdownNow();
         enable_ctrls_load(false, true);
         enable_ctrls_run(false, true, true);
+        //Store properties
+        save_properties();
         //Close the handlers
         stop_logging();
     }
 
+    //The executor to handle parallel tasks
     private final ExecutorService m_executor = Executors.newFixedThreadPool(NUM_UI_WORK_THREADS);
 
     private void enable_ctrls_safe(final boolean is_start) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start);
-        m_load_ind.setVisible(is_start);
+        m_main_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(is_start);
         m_stop_btn.setDisable(true);
 
@@ -231,7 +270,7 @@ public class FXMLController implements Initializable {
     private void enable_ctrls_load(final boolean is_start, final boolean is_ok) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start || !is_ok);
-        m_load_ind.setVisible(is_start);
+        m_main_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(true);
         m_stop_btn.setDisable(true);
 
@@ -269,6 +308,20 @@ public class FXMLController implements Initializable {
     }
 
     /**
+     * Allows to update the main progress bar
+     *
+     * @param value the new value
+     */
+    private void update_main_progress(final double value) {
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                m_main_prog_ind.setProgress(value);
+            }
+        });
+    }
+
+    /**
      * Allows to get the smallest individual text from the list of individuals.
      *
      * @param inds the list of individuals
@@ -278,16 +331,27 @@ public class FXMLController implements Initializable {
     private Pair<Individual, String> get_best_ind(List<Individual> inds) throws IllegalStateException {
         String min_ind_str = "";
         Individual min_ind = null;
+        update_main_progress(0.0);
         LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
         if (inds.isEmpty()) {
             throw new IllegalStateException("The best individuals list is emty!");
         } else {
             for (int ind_idx = 0; ind_idx < inds.size(); ++ind_idx) {
+                //Get the individual
                 final Individual ind = inds.get(ind_idx);
-                String ind_str = ind.get_expr_list().get(0).to_text();
-                for (int idx = 0; idx < m_grammar.get_num_vars(); ++idx) {
-                    ind_str = ind_str.replaceAll(Creator.get_var_name(idx), "x" + idx);
-                }
+
+                //Optimize the individual
+                LOGGER.log(Level.INFO, "Optimizing candidage individual {0}/{1}: {2}",
+                        new Object[]{(ind_idx + 1), inds.size(),
+                            ind.get_expr_list().get(0).to_text()});
+                ind.optimize();
+
+                //Update progress indicator
+                update_main_progress(((double) (ind_idx + 1)) / ((double) inds.size()));
+
+                //Get the textual representatio
+                final String ind_str = ind.get_expr_list().get(0).to_text();
+                //Choose the shortest representation
                 if (min_ind_str.isEmpty()) {
                     min_ind_str = ind_str;
                     min_ind = ind;
@@ -300,6 +364,7 @@ public class FXMLController implements Initializable {
                 }
             }
         }
+        update_main_progress(-1.0);
         return new Pair<>(min_ind, min_ind_str);
     }
 
@@ -431,6 +496,7 @@ public class FXMLController implements Initializable {
         m_is_scale_cbx.setDisable(is_start);
         m_is_compl_cbx.setDisable(is_start);
         m_is_child_lim_cbx.setDisable(is_start);
+        m_is_avoid_equal_cbx.setDisable(is_start);
         if (m_is_child_lim_cbx.isSelected()) {
             m_min_ch_cnt_txt.setDisable(is_start);
             m_max_ch_cnt_txt.setDisable(is_start);
@@ -488,7 +554,7 @@ public class FXMLController implements Initializable {
         final Object value = m_dims_cmb.getValue();
         if (value != null) {
             //Set up the parameters and the grammar
-            m_load_ind.setVisible(true);
+            m_main_prog_ind.setVisible(true);
             m_stop_btn.setDisable(true);
             try {
                 //Get the parameter values
@@ -515,7 +581,7 @@ public class FXMLController implements Initializable {
                         m_tm_vs_tnm_sld.getValue());
                 grammar = Grammar.create_grammar(g_cfg);
             } finally {
-                m_load_ind.setVisible(false);
+                m_main_prog_ind.setVisible(false);
                 m_stop_btn.setDisable(false);
             }
         } else {
@@ -545,6 +611,7 @@ public class FXMLController implements Initializable {
         final boolean is_stop_found = m_is_stop_cbx.isSelected();
         final SelectionType sel_type = (SelectionType) m_tour_cmb.getValue();
         final boolean is_child_limit = m_is_child_lim_cbx.isSelected();
+        final boolean is_avoid_equal = m_is_avoid_equal_cbx.isSelected();
         final int min_ch_cnt = Integer.parseInt(m_min_ch_cnt_txt.getText());
         final int max_ch_cnt = Integer.parseInt(m_max_ch_cnt_txt.getText());
         //Prepare grammars
@@ -555,8 +622,6 @@ public class FXMLController implements Initializable {
             Grammar.register_grammar(mgr_id, 0, grammar);
         });
         Grammar.prepare_grammars();
-        //Remember the grammar
-        m_grammar = grammar;
         //Constructe the interface elements
         Platform.runLater(new Runnable() {
             @Override
@@ -573,7 +638,7 @@ public class FXMLController implements Initializable {
                     FitnessChart ex_ftn_chart = new FitnessChart(m_ex_ftn_pane, dof_title + "(Exact)");
                     final DofVisualizer visualizer = new DofVisualizer(
                             size_x, size_y, m_progress_box, dof_title,
-                            m_load_ind.getPrefHeight(), m_load_ind.getPrefWidth(),
+                            m_main_prog_ind.getPrefHeight(), m_main_prog_ind.getPrefHeight(),
                             grid_pane, req_ftn_chart, ex_ftn_chart) {
                         @Override
                         public synchronized void set(final Individual ind) {
@@ -590,8 +655,8 @@ public class FXMLController implements Initializable {
                     final ProcessManagerConfig config = new ProcessManagerConfig(
                             mgr_id, init_pop_mult, num_workers, max_mutations,
                             1, size_x, size_y, ch_sp_x, ch_sp_y, sel_type,
-                            is_child_limit, min_ch_cnt, max_ch_cnt, visualizer,
-                            (mgr) -> {
+                            is_child_limit, is_avoid_equal, min_ch_cnt, max_ch_cnt,
+                            visualizer, (mgr) -> {
                                 count_finished_dofs(mgr);
                             });
                     final ProcessManager manager = new ProcessManager(config);
@@ -693,8 +758,11 @@ public class FXMLController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        m_load_ind.setProgress(-1.0);
-        m_load_ind.setVisible(false);
+        //Load properties
+        load_properties();
+
+        m_main_prog_ind.setProgress(-1.0);
+        m_main_prog_ind.setVisible(false);
         m_progress_box.setAlignment(Pos.CENTER_LEFT);
 
         m_tour_cmb.getItems().add(SelectionType.VALUE.get_idx(),
@@ -758,6 +826,52 @@ public class FXMLController implements Initializable {
                 } else {
                     m_fit_cmb.setDisable(true);
                     m_attract_txt.setDisable(true);
+                }
+            }
+        });
+    }
+
+    /**
+     * Allows to perform the initial checks.
+     */
+    public void after_show() {
+        Platform.runLater(new Runnable() {
+            private final FileChooser fileChooser = new FileChooser();
+            private final FileChooser.ExtensionFilter extFilter
+                    = new FileChooser.ExtensionFilter("SCOTS2DLL dynamic library",
+                            "*.dylib", "*.dll", "*.so");
+
+            {
+                fileChooser.setTitle("Load Native Library");
+                fileChooser.getExtensionFilters().add(extFilter);
+            }
+
+            @Override
+            public void run() {
+                //Check if the native library is defined
+                String lib_file_name = m_props.getProperty(LIB_FILE_NAME_PROP);
+                if (lib_file_name == null) {
+                    final File file = fileChooser.showOpenDialog(m_load_btn.getScene().getWindow());
+                    if (file != null) {
+                        lib_file_name = file.getPath();
+                        m_props.setProperty(LIB_FILE_NAME_PROP, lib_file_name);
+                    } else {
+                        //If the library is not selected then re-try
+                        Platform.runLater(this);
+                        return;
+                    }
+                }
+                LOGGER.log(Level.INFO, "Loading the SCOTS2DLL "
+                        + "dynamic library from {0}", lib_file_name);
+                //Attempt loading the library
+                if (ScotsFacade.INSTANCE.load_library(lib_file_name)) {
+                    m_props.remove(LIB_FILE_NAME_PROP);
+                    final Alert alert = new Alert(AlertType.ERROR,
+                            "Faled loading the JNI dynamic library: "
+                            + lib_file_name + ", please choose another one!");
+                    alert.showAndWait();
+                    //If loading failed then re-try
+                    Platform.runLater(this);
                 }
             }
         });

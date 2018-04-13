@@ -29,14 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tudelft.dcsc.scots2jni.Scots2JNI;
 import nl.tudelft.dcsc.scots2jni.FConfig;
-import nl.tudelft.dcsc.scots2sr.sr.ScaledFitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessComputerClass;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
-import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
-import nl.tudelft.dcsc.sr2jlib.grammar.expr.Expression;
-import nl.tudelft.dcsc.sr2jlib.grammar.expr.FunctExpr;
-import nl.tudelft.dcsc.sr2jlib.grammar.expr.NConstExpr;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.instance.Loader;
 
@@ -55,7 +50,7 @@ public class ScotsFacade extends FitnessComputerClass {
     public static final String UNFIT_FILE_SUFFIX = ".unfit";
 
     //Stores the class loader
-    private final Loader m_loader;
+    private Loader m_loader;
     //Stores the Scots2JNI loaded class
     private Class<?> m_class;
     //Stores the Scots2JNI class interface methods
@@ -70,13 +65,41 @@ public class ScotsFacade extends FitnessComputerClass {
      * The private constructor for the singleton
      */
     private ScotsFacade() {
+    }
+
+    //Stores the singleton class instance
+    public static final ScotsFacade INSTANCE = new ScotsFacade();
+
+    //Set the fitness computer
+    static {
+        FitnessManager.set_inst(INSTANCE);
+    }
+
+    /**
+     * Allows to load the dynamic library interacting with SCOTS and checking
+     * for fitness.
+     *
+     * @param lib_file_name the library file name
+     * @return true if the library could not be loaded, otherwise false
+     */
+    public boolean load_library(final String lib_file_name) {
         m_loader = new Loader();
         try {
             final String name = Scots2JNI.class.getName();
             m_class = m_loader.loadClassNC(name);
-            LOGGER.log(Level.FINE, "The class {0} is loaded as {1}",
-                    new Object[]{name, m_class});
-            LOGGER.log(Level.FINE, "The class instance of {0} is created", name);
+
+            //Load the Native library within the class as otherwise 
+            //it is not accessible through the custom class loader
+            try {
+                final Method load_lib = m_class.getMethod("load_lib", String.class);
+                load_lib.invoke(null, lib_file_name);
+            } catch (UnsatisfiedLinkError | IllegalAccessException
+                    | IllegalArgumentException | InvocationTargetException ex) {
+                LOGGER.log(Level.SEVERE, "Native code library '"
+                        + lib_file_name + "' failed to load.\n", ex);
+                return true;
+            }
+
             m_load = m_class.getMethod("load", String.class);
             m_configure = m_class.getMethod("configure", FConfig.class);
             m_compute_fitness = m_class.getMethod("compute_fitness", String.class, int.class);
@@ -86,16 +109,10 @@ public class ScotsFacade extends FitnessComputerClass {
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException ex) {
             LOGGER.log(Level.SEVERE, "Failed when loading and instantiating "
                     + Scots2JNI.class.getName(), ex);
-            System.exit(1);
+            return true;
         }
-    }
 
-    //Stores the singleton class instance
-    public static final ScotsFacade INSTANCE = new ScotsFacade();
-
-    //Set the fitness computer
-    static {
-        FitnessManager.set_inst(INSTANCE);
+        return false;
     }
 
     /**
