@@ -350,6 +350,7 @@
                               <GridPane>
                                  <children>
                                     <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" />
+                                    <CheckBox fx:id="m_is_opt_on_save_cbx" layoutX="10.0" layoutY="15.0" mnemonicParsing="false" selected="true" text="Optimize on save" GridPane.columnIndex="1" />
                                  </children>
                                  <columnConstraints>
                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />

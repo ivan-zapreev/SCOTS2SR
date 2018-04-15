@@ -172,6 +172,8 @@ public class FXMLController implements Initializable {
     @FXML
     private CheckBox m_is_avoid_equal_cbx;
     @FXML
+    private CheckBox m_is_opt_on_save_cbx;
+    @FXML
     private TextField m_min_ch_cnt_txt;
     @FXML
     private TextField m_max_ch_cnt_txt;
@@ -341,10 +343,12 @@ public class FXMLController implements Initializable {
                 final Individual ind = inds.get(ind_idx);
 
                 //Optimize the individual
-                LOGGER.log(Level.INFO, "Optimizing candidage individual {0}/{1}: {2}",
-                        new Object[]{(ind_idx + 1), inds.size(),
-                            ind.get_expr_list().get(0).to_text()});
-                ind.optimize();
+                if (m_is_opt_on_save_cbx.isSelected()) {
+                    LOGGER.log(Level.INFO, "Optimizing candidage individual {0}/{1}: {2}",
+                            new Object[]{(ind_idx + 1), inds.size(),
+                                ind.get_expr_list().get(0).to_text()});
+                    ind.optimize();
+                }
 
                 //Update progress indicator
                 update_main_progress(((double) (ind_idx + 1)) / ((double) inds.size()));
@@ -497,6 +501,7 @@ public class FXMLController implements Initializable {
         m_is_compl_cbx.setDisable(is_start);
         m_is_child_lim_cbx.setDisable(is_start);
         m_is_avoid_equal_cbx.setDisable(is_start);
+        m_is_opt_on_save_cbx.setDisable(is_start);
         if (m_is_child_lim_cbx.isSelected()) {
             m_min_ch_cnt_txt.setDisable(is_start);
             m_max_ch_cnt_txt.setDisable(is_start);
