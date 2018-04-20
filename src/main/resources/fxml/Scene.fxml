@@ -10,9 +10,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="1067.0" prefWidth="1014.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tudelft.dcsc.scots2sr.FXMLController">
+<AnchorPane id="AnchorPane" prefHeight="1260.0" prefWidth="962.0" style="-fx-background-color: lightblue;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="nl.tudelft.dcsc.scots2sr.FXMLController">
     <children>
-      <BorderPane prefHeight="655.0" prefWidth="1014.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <BorderPane prefHeight="1260.0" prefWidth="962.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <top>
                 <ToolBar prefHeight="46.0" prefWidth="1014.0" BorderPane.alignment="CENTER">
                     <items>
@@ -35,7 +35,7 @@
                                 <Label alignment="CENTER" prefHeight="17.0" prefWidth="416.0" text="Grammar:" />
                         <AnchorPane prefHeight="534.0" prefWidth="190.0">
                            <children>
-                                      <TextArea fx:id="m_grammar_txt" prefHeight="226.0" prefWidth="234.0" text="R := [x1](D); [x1](V); [$abs(x1)](R)@0.1; [$sin(x1)](R); [$cos(x1)](R); [$sinh(x1)](R); [$cosh(x1)](R); [$tan(x1)](tR); [$tanh(x1)](R); [$acos(x1)](aR); [$asin(x1)](aR); [$sqrt(x1)](npR); [$cbrt(x1)](R); [$ceil(x1)](R); [$floor(x1)](R); [$log(x1)](lR); [$log10(x1)](lR); [$max(x1,x2)](R,R) ; [$min(x1,x2)](R, R) ; [$pow(x1,x2)](R,pI); [$signum(x1)](R); [-x1](R); [x1/x2](R,nR); [x1*x2](R,R); [x1+x2](R,R); [x1-x2](R,R) ; [x1 ? x2 : x3](B,R,R)&#10;&#10;B := [x1](L) @0.01; [x1!=x2](R,R); [x1==x2](R,R); [x1&lt;x2](R,R); [x1&lt;=x2](R,R); [x1&gt;x2](R,R); [x1&gt;=x2](R,R); [!x1](B) ; [x1&amp;&amp;x2](B,B); [x1||x2](B,B)&#10;&#10;//User defined by demand:&#10;aR :=  [x1 - $floor(x1)](R) //domain for acos/asin&#10;lR := [(x1&lt;1.0e-4)?1.0e-4:x1](pR) //domain for log/log10&#10;nR := [(x1==0.0)?1.0e-10:x1](R)  //non-zero real&#10;pR := [$abs(x1)](nR)  //positive real&#10;npR := [$abs(x1)](R)  //non-negative real&#10;pI := [$floor(1.0/x1)](nR) //positive integer&#10;tR := [x1 - $floor(x1/$PI)*$PI](R) //domain for tangent&#10;&#10;//Form: [function](arguments)@weight&#10;//&quot;$&quot; - is replaced with &quot;Math.&quot;&#10;//Arguments are comma separated&#10;//The variable arguments for the java code&#10;//are &quot;args[idx]&quot; where idx begins with 0&#10;//Standard argument types:&#10;//R - real expression&#10;//B - boolean expression&#10;//L - logical constant&#10;//V - variable&#10;//D - double constant&#10;//F - float constant" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                      <TextArea fx:id="m_grammar_txt" prefHeight="534.0" prefWidth="408.0" text="R := [x1](D); [x1](V); [$abs(x1)](R)@0.1; [$sin(x1)](R); [$cos(x1)](R); [$sinh(x1)](R); [$cosh(x1)](R); [$tan(x1)](tR); [$tanh(x1)](R); [$acos(x1)](aR); [$asin(x1)](aR); [$sqrt(x1)](npR); [$cbrt(x1)](R); [$ceil(x1)](R); [$floor(x1)](R); [$log(x1)](lR); [$log10(x1)](lR); [$max(x1,x2)](R,R) ; [$min(x1,x2)](R, R) ; [$pow(x1,x2)](R,pI); [$signum(x1)](R); [-x1](R); [x1/x2](R,nR); [x1*x2](R,R); [x1+x2](R,R); [x1-x2](R,R) ; [x1 ? x2 : x3](B,R,R)&#10;&#10;B := [x1](L) @0.01; [x1!=x2](R,R); [x1==x2](R,R); [x1&lt;x2](R,R); [x1&lt;=x2](R,R); [x1&gt;x2](R,R); [x1&gt;=x2](R,R); [!x1](B) ; [x1&amp;&amp;x2](B,B); [x1||x2](B,B)&#10;&#10;//User defined by demand:&#10;aR :=  [x1 - $floor(x1)](R) //domain for acos/asin&#10;lR := [(x1&lt;1.0e-4)?1.0e-4:x1](pR) //domain for log/log10&#10;nR := [(x1==0.0)?1.0e-10:x1](R)  //non-zero real&#10;pR := [$abs(x1)](nR)  //positive real&#10;npR := [$abs(x1)](R)  //non-negative real&#10;pI := [$floor(1.0/x1)](nR) //positive integer&#10;tR := [x1 - $floor(x1/$PI)*$PI](R) //domain for tangent&#10;&#10;//Form: [function](arguments)@weight&#10;//&quot;$&quot; - is replaced with &quot;Math.&quot;&#10;//Arguments are comma separated&#10;//The variable arguments for the java code&#10;//are &quot;args[idx]&quot; where idx begins with 0&#10;//Standard argument types:&#10;//R - real expression&#10;//B - boolean expression&#10;//L - logical constant&#10;//V - variable&#10;//D - double constant&#10;//F - float constant" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                            </children>
                         </AnchorPane>
                      </children>
@@ -44,7 +44,7 @@
             </AnchorPane>
          </right>
          <bottom>
-                  <AnchorPane prefHeight="243.0" prefWidth="1014.0" BorderPane.alignment="CENTER">
+                  <AnchorPane prefHeight="243.0" prefWidth="962.0" BorderPane.alignment="CENTER">
                       <children>
                   <SplitPane dividerPositions="0.5" prefHeight="243.0" prefWidth="1014.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <items>
@@ -88,330 +88,176 @@
             </AnchorPane>
          </center>
          <left>
-            <ScrollPane prefHeight="778.0" prefWidth="345.0" BorderPane.alignment="CENTER">
+            <ScrollPane prefHeight="1068.0" prefWidth="335.0" BorderPane.alignment="CENTER">
               <content>
-                <AnchorPane prefHeight="701.0" prefWidth="296.0">
+                <AnchorPane prefHeight="1055.0" prefWidth="303.0">
                      <children>
-                        <VBox prefHeight="660.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                        <GridPane prefHeight="1055.0" prefWidth="303.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                          <columnConstraints>
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                            <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                            <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                            <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                              <RowConstraints maxHeight="0.0" minHeight="0.0" prefHeight="0.0" vgrow="SOMETIMES" />
+                          </rowConstraints>
                            <children>
-                              <GridPane prefHeight="77.0" prefWidth="310.0">
-                                <columnConstraints>
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                </columnConstraints>
-                                <rowConstraints>
-                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                </rowConstraints>
-                                 <children>
-                                              <Label text="Controller File:" />
-                                              <TextArea fx:id="m_ctrl_name_txt" editable="false" prefHeight="0.0" prefWidth="135.0" style="-fx-min-height: 60px;" text="---" wrapText="true" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="10.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                              <Label text="State dim:" />
-                                              <ComboBox fx:id="m_dims_cmb" disable="true" prefHeight="28.0" prefWidth="292.0" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="40.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                              <Label text="Population grid:" />
-                                              <TextField fx:id="m_max_pop_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Approximate max. population size" text="30x30" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="10.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                              <Label text="Reproductions per Dof:" />
-                                              <TextField fx:id="m_max_mut_txt" disable="true" prefHeight="0.0" prefWidth="148.0" promptText="Max. number of muttions" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="100.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                              <Label text="Max. Tree size:" />
-                                              <TextField fx:id="m_max_tree_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Maximum tree depth" text="300" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="130.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label text="Workers per Dof:" />
-                                    <TextField fx:id="m_workers_dof_txt" prefHeight="0.0" prefWidth="148.0" promptText="Number of workers per GP dof" text="20" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="180.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label text="Change vs. Replace" />
-                                    <Slider fx:id="m_ch_vs_rep_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1">
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
-                                       <GridPane.margin>
-                                          <Insets />
-                                       </GridPane.margin></Slider>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="100.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label text="Initial population" />
-                                    <Slider fx:id="m_init_pop_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.1" GridPane.columnIndex="1">
-                                       <opaqueInsets>
-                                          <Insets />
-                                       </opaqueInsets>
-                                    </Slider>
-                                 </children>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="256.0">
-                                 <children>
-                                    <Label text="Min node grow factor" />
-                                    <TextField fx:id="m_min_ngf_txt" promptText="The initial population multiple" text="0.5" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="256.0">
-                                 <children>
-                                    <Label text="Max node grow factor" />
-                                    <TextField fx:id="m_max_ngf_txt" promptText="The initial population multiple" text="2.0" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="262.0">
-                                 <children>
-                                    <Label text="Term. vs non-term." />
-                                    <Slider fx:id="m_tm_vs_tnm_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" value="0.5" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <VBox.margin>
-                                    <Insets top="5.0" />
-                                 </VBox.margin>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="160.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <Label text="Tournament type" />
-                                    <ComboBox fx:id="m_tour_cmb" prefWidth="150.0" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane>
-                                 <children>
-                                    <Label text="Fitness type" />
-                                    <ComboBox fx:id="m_fit_cmb" prefWidth="150.0" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane>
-                                 <children>
-                                    <Label text="Attractor size" />
-                                    <TextField fx:id="m_attract_txt" promptText="The 1.0 fitness area range, max 0.5" text="0.49999" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane>
-                                 <children>
-                                    <Label text="Fitness scale" />
-                                    <TextField fx:id="m_ftn_scale_txt" promptText="The scale to be used for the complex fitness functions" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane>
-                                 <children>
-                                    <CheckBox fx:id="m_is_scale_cbx" mnemonicParsing="false" selected="true" text="Is scale" />
-                                    <CheckBox fx:id="m_is_compl_cbx" mnemonicParsing="false" selected="true" text="Complex fitness" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="160.0">
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                                 <children>
-                                    <CheckBox fx:id="m_is_stop_cbx" mnemonicParsing="false" selected="true" text="Stop if found" />
-                                    <CheckBox fx:id="m_is_iter_cbx" mnemonicParsing="false" selected="true" text="Endless iterations" GridPane.columnIndex="1" />
-                                 </children>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="436.0">
-                                 <children>
-                                    <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" />
-                                    <CheckBox fx:id="m_is_child_lim_cbx" mnemonicParsing="false" text="Child life limits" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane>
-                                 <children>
-                                    <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" />
-                                    <CheckBox fx:id="m_is_opt_on_save_cbx" layoutX="10.0" layoutY="15.0" mnemonicParsing="false" selected="true" text="Optimize on save" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="286.0">
-                                 <children>
-                                    <Label text="Min child count" />
-                                    <TextField fx:id="m_min_ch_cnt_txt" disable="true" promptText="The minimum number of children" text="100" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="474.0">
-                                 <children>
-                                    <Label text="Max child count" />
-                                    <TextField fx:id="m_max_ch_cnt_txt" disable="true" promptText="The maximum number of children" text="1000" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <GridPane layoutX="10.0" layoutY="476.0">
-                                 <children>
-                                    <Label text="Max grammar depth" />
-                                    <TextField fx:id="m_max_gd_txt" promptText="The maximum grammar depth for the fixed point" text="1000" GridPane.columnIndex="1" />
-                                 </children>
-                                 <columnConstraints>
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                 </columnConstraints>
-                                 <rowConstraints>
-                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                                 </rowConstraints>
-                              </GridPane>
-                              <HBox alignment="CENTER_LEFT" prefHeight="37.0" prefWidth="296.0">
-                                 <children>
-                                    <Label text="Child spread X:  " />
-                                    <TextField fx:id="m_ch_sp_x_txt" prefHeight="27.0" prefWidth="79.0" promptText="The +/- cells in X relative to the parent to put the child" text="1" />
-                                    <Label text=",  Y:  " />
-                                    <TextField fx:id="m_ch_sp_y_txt" editable="false" prefHeight="27.0" prefWidth="84.0" promptText="The +/- cells in Y relative to the parent to put the child" text="1" />
-                                 </children>
+                                        <Label text="Controller File:" />
+                                        <TextArea fx:id="m_ctrl_name_txt" editable="false" prefHeight="0.0" prefWidth="135.0" style="-fx-min-height: 60px;" text="---" wrapText="true" GridPane.columnIndex="1">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </TextArea>
+                                        <Label text="State dim:" GridPane.rowIndex="1" />
+                                        <ComboBox fx:id="m_dims_cmb" disable="true" prefHeight="28.0" prefWidth="292.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </ComboBox>
+                                        <Label text="Dof grid size:" GridPane.rowIndex="4" />
+                                        <TextField fx:id="m_max_pop_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Approximate max. population size" text="30x30" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                              <CheckBox fx:id="m_is_iter_cbx" mnemonicParsing="false" selected="true" text="Endless iterations" GridPane.rowIndex="6">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                                        <Label text="Reproductions per Dof:" GridPane.rowIndex="7" />
+                                        <TextField fx:id="m_max_mut_txt" disable="true" prefHeight="0.0" prefWidth="148.0" promptText="Max. number of muttions" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </TextField>
+                                        <Label text="Max. Tree size:" GridPane.rowIndex="10" />
+                                        <TextField fx:id="m_max_tree_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Maximum tree depth" text="300" GridPane.columnIndex="1" GridPane.rowIndex="10" />
+                              <Label text="Workers per Dof:" GridPane.rowIndex="5" />
+                              <TextField fx:id="m_workers_dof_txt" prefHeight="0.0" prefWidth="148.0" promptText="Number of workers per GP dof" text="20" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                              <CheckBox fx:id="m_is_stop_cbx" mnemonicParsing="false" selected="true" text="Stop if found" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <CheckBox fx:id="m_is_opt_on_save_cbx" mnemonicParsing="false" selected="true" text="Reduce symbolic controller size on save" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <Label text="Max grammar depth" GridPane.rowIndex="11" />
+                              <TextField fx:id="m_max_gd_txt" promptText="The maximum grammar depth for the fixed point" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="11" />
+                              <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" GridPane.rowIndex="9" />
+                              <Label text="Tournament type" GridPane.rowIndex="19" />
+                              <ComboBox fx:id="m_tour_cmb" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="19" />
+                              <CheckBox fx:id="m_is_scale_cbx" mnemonicParsing="false" selected="true" text="Is scale" GridPane.rowIndex="20">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <CheckBox fx:id="m_is_compl_cbx" mnemonicParsing="false" selected="true" text="Complex fitness" GridPane.columnIndex="1" GridPane.rowIndex="20">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <Label text="Complex fitness type" GridPane.rowIndex="21" />
+                              <ComboBox fx:id="m_fit_cmb" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="21" />
+                              <Label text="Attractor size" GridPane.rowIndex="22" />
+                              <TextField fx:id="m_attract_txt" promptText="The 1.0 fitness area range, max 0.5" text="0.49999" GridPane.columnIndex="1" GridPane.rowIndex="22" />
+                              <Label text="Fitness scale" GridPane.rowIndex="23" />
+                              <TextField fx:id="m_ftn_scale_txt" promptText="The scale to be used for the complex fitness functions" GridPane.columnIndex="1" GridPane.rowIndex="23" />
+                              <Label text="Change vs. Replace" GridPane.rowIndex="25" />
+                              <Slider fx:id="m_ch_vs_rep_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="25">
                                  <opaqueInsets>
                                     <Insets />
                                  </opaqueInsets>
-                              </HBox>
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </Slider>
+                              <Label text="Initial population" GridPane.rowIndex="26" />
+                              <Slider fx:id="m_init_pop_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.1" GridPane.columnIndex="1" GridPane.rowIndex="26">
+                                 <opaqueInsets>
+                                    <Insets />
+                                 </opaqueInsets>
+                              </Slider>
+                              <Label text="Min node grow factor" GridPane.rowIndex="27" />
+                              <TextField fx:id="m_min_ngf_txt" promptText="The initial population multiple" text="0.5" GridPane.columnIndex="1" GridPane.rowIndex="27" />
+                              <Label text="Max node grow factor" GridPane.rowIndex="28" />
+                              <TextField fx:id="m_max_ngf_txt" promptText="The initial population multiple" text="2.0" GridPane.columnIndex="1" GridPane.rowIndex="28" />
+                              <Label text="Term. vs non-term." GridPane.rowIndex="29" />
+                              <Slider fx:id="m_tm_vs_tnm_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="29" />
+                              <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" GridPane.rowIndex="31">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <CheckBox fx:id="m_is_child_lim_cbx" mnemonicParsing="false" text="Child life limits" GridPane.columnIndex="1" GridPane.rowIndex="31">
+                                 <GridPane.margin>
+                                    <Insets />
+                                 </GridPane.margin>
+                              </CheckBox>
+                              <Label text="Min child count" GridPane.rowIndex="32" />
+                              <TextField fx:id="m_min_ch_cnt_txt" disable="true" promptText="The minimum number of children" text="100" GridPane.columnIndex="1" GridPane.rowIndex="32" />
+                              <Label text="Max child count" GridPane.rowIndex="33" />
+                              <TextField fx:id="m_max_ch_cnt_txt" disable="true" promptText="The maximum number of children" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="33" />
+                              <Label text="Child spread X:  " GridPane.rowIndex="34" />
+                              <TextField fx:id="m_ch_sp_x_txt" prefHeight="27.0" prefWidth="79.0" promptText="The +/- cells in X relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="34" />
+                              <Label text="Child spread Y:  " GridPane.rowIndex="35" />
+                              <TextField fx:id="m_ch_sp_y_txt" prefHeight="27.0" prefWidth="84.0" promptText="The +/- cells in Y relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="35" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="18" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="24" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="3" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="8" />
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="12" />
+                              <CheckBox fx:id="m_rss_ftn_cbx" mnemonicParsing="false" selected="true" text="RSS Fitness" GridPane.columnIndex="1" GridPane.rowIndex="13" />
+                              <Label text="Relative sample size" GridPane.rowIndex="14" />
+                              <Label text="Min. bisection sample" GridPane.rowIndex="16" />
+                              <Label text="Bisection sample ratio" GridPane.rowIndex="17" />
+                              <Label text="Computed sample size" GridPane.rowIndex="15" />
+                              <CheckBox fx:id="m_mc_fitness_cbx" mnemonicParsing="false" selected="true" text="Monte Carlo Fitness" GridPane.rowIndex="13" />
+                              <TextField fx:id="m_min_bis_size_txt" promptText="The minimum sample size to do RSS bisection" text="100" GridPane.columnIndex="1" GridPane.rowIndex="16" />
+                              <TextField fx:id="m_rel_sam_size_txt" promptText="The sample size coefficient relative to the grid size" text="0.1" GridPane.columnIndex="1" GridPane.rowIndex="14" />
+                              <Slider fx:id="m_rss_bis_ratio_sld" blockIncrement="0.001" layoutX="174.0" layoutY="724.0" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.2" GridPane.columnIndex="1" GridPane.rowIndex="17">
+                                 <opaqueInsets>
+                                    <Insets />
+                                 </opaqueInsets>
+                              </Slider>
+                              <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="30" />
+                              <TextField fx:id="m_act_sam_size_txt" disable="true" editable="false" promptText="Is computed based on the relative sample size and the loaded controller grid size" text="0" GridPane.columnIndex="1" GridPane.rowIndex="15" />
                            </children>
-                        </VBox>
+                        </GridPane>
                      </children>
                   </AnchorPane>
               </content>

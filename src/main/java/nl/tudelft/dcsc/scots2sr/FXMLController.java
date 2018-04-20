@@ -28,8 +28,6 @@ import nl.tudelft.dcsc.scots2sr.ui.FitnessChart;
 import nl.tudelft.dcsc.scots2sr.ui.GridView;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -40,7 +38,6 @@ import java.nio.file.Paths;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,6 +66,7 @@ import javafx.scene.chart.StackedAreaChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
@@ -99,8 +97,6 @@ public class FXMLController implements Initializable {
         }
     }
 
-    //Stores the library file property name
-    private static final String LIB_FILE_NAME_PROP = "Native Library Name";
     //Stores the symbolic controller file name extension
     private static final String SYM_FILE_NAME_EXT = "sym";
     //Stores the symbolic controller file name template
@@ -195,49 +191,33 @@ public class FXMLController implements Initializable {
     @FXML
     private HBox m_progress_box;
 
+    @FXML
+    private CheckBox m_mc_fitness_cbx;
+    @FXML
+    private CheckBox m_rss_ftn_cbx;
+    @FXML
+    private TextField m_rel_sam_size_txt;
+    @FXML
+    private TextField m_act_sam_size_txt;
+    @FXML
+    private TextField m_min_bis_size_txt;
+    @FXML
+    private Slider m_rss_bis_ratio_sld;
+
     //Stores the cached number of iterations
     private String m_max_mut_val;
     //Stores the number of loaded controller dofs
     private int m_num_dofs;
-
-    //Stores the properties file
-    private final File m_props_file;
-    //Stores the properties
-    private final Properties m_props;
+    //Stores the number of points in the state-space grid
+    private int m_ss_size;
+    //Stores the property manager
+    private final PropertyManager m_prop_mgr;
 
     public FXMLController() {
         m_max_mut_val = "300000";
         m_num_dofs = 0;
-        m_props_file = new File("config.properties");
-        m_props = new Properties();
-    }
-
-    /**
-     * Allows to load the properties from file
-     */
-    private void load_properties() {
-        try {
-            try (FileReader reader = new FileReader(m_props_file)) {
-                m_props.load(reader);
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "Unable to load config file: {0}",
-                    m_props_file.getName());
-        }
-    }
-
-    /**
-     * Allows to store properties into file
-     */
-    private void save_properties() {
-        try {
-            try (FileWriter writer = new FileWriter(m_props_file)) {
-                m_props.store(writer, "Settings");
-            }
-        } catch (IOException ex) {
-            LOGGER.log(Level.WARNING, "Unable to save config file: "
-                    + m_props_file.getName(), ex);
-        }
+        m_ss_size = 0;
+        m_prop_mgr = new PropertyManager("config.properties");
     }
 
     /**
@@ -249,7 +229,7 @@ public class FXMLController implements Initializable {
         enable_ctrls_load(false, true);
         enable_ctrls_run(false, true, true);
         //Store properties
-        save_properties();
+        m_prop_mgr.save_properties();
         //Close the handlers
         stop_logging();
     }
@@ -435,6 +415,8 @@ public class FXMLController implements Initializable {
                     final String file_name = full_file_name.replaceFirst("[.][^.]+$", "");
                     start_logging(file_name);
                     m_num_dofs = ScotsFacade.INSTANCE.load(file_name);
+                    m_ss_size = ScotsFacade.INSTANCE.get_state_space_size();
+                    re_compute_mc_sample_size();
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
@@ -473,42 +455,70 @@ public class FXMLController implements Initializable {
     //Stores the list of active managers
     private final List<ProcessManager> m_managers_act = new ArrayList<>();
 
-    private void enable_non_btn_ctrls(final boolean is_start) {
-        //m_ctrl_name_txt.setDisable(is_start);
-        m_dims_cmb.setDisable(is_start);
-        if (!m_is_iter_cbx.isSelected()) {
-            m_max_mut_txt.setDisable(is_start);
+    private void enable_monte_carlo_ctrls(final boolean is_dis) {
+        m_mc_fitness_cbx.setDisable(is_dis);
+        if (m_mc_fitness_cbx.isSelected()) {
+            m_rel_sam_size_txt.setDisable(is_dis);
+            m_rss_ftn_cbx.setDisable(is_dis);
+            if (m_rss_ftn_cbx.isSelected()) {
+                m_min_bis_size_txt.setDisable(is_dis);
+                m_rss_bis_ratio_sld.setDisable(is_dis);
+            }
         }
-        m_max_tree_size_txt.setDisable(is_start);
-        m_max_pop_size_txt.setDisable(is_start);
-        m_grammar_txt.setDisable(is_start);
-        m_ch_vs_rep_sld.setDisable(is_start);
-        m_tm_vs_tnm_sld.setDisable(is_start);
-        m_init_pop_sld.setDisable(is_start);
-        m_workers_dof_txt.setDisable(is_start);
-        m_tour_cmb.setDisable(is_start);
-        m_is_stop_cbx.setDisable(is_start);
-        m_is_iter_cbx.setDisable(is_start);
-        m_min_ngf_txt.setDisable(is_start);
-        m_max_ngf_txt.setDisable(is_start);
-        if (m_is_compl_cbx.isSelected()) {
-            m_fit_cmb.setDisable(is_start);
-            m_attract_txt.setDisable(is_start);
-            m_ftn_scale_txt.setDisable(is_start);
-        }
-        m_is_prop_pn_cbx.setDisable(is_start);
-        m_is_scale_cbx.setDisable(is_start);
-        m_is_compl_cbx.setDisable(is_start);
-        m_is_child_lim_cbx.setDisable(is_start);
-        m_is_avoid_equal_cbx.setDisable(is_start);
-        m_is_opt_on_save_cbx.setDisable(is_start);
+    }
+
+    private void enable_child_limit_ctrls(final boolean is_dis) {
+        m_is_child_lim_cbx.setDisable(is_dis);
         if (m_is_child_lim_cbx.isSelected()) {
-            m_min_ch_cnt_txt.setDisable(is_start);
-            m_max_ch_cnt_txt.setDisable(is_start);
+            m_min_ch_cnt_txt.setDisable(is_dis);
+            m_max_ch_cnt_txt.setDisable(is_dis);
         }
-        m_max_gd_txt.setDisable(is_start);
-        m_ch_sp_x_txt.setDisable(is_start);
-        m_ch_sp_y_txt.setDisable(is_start);
+    }
+
+    private void enable_fitness_ctrls(final boolean is_dis) {
+        m_is_compl_cbx.setDisable(is_dis);
+        if (m_is_compl_cbx.isSelected()) {
+            //If the complex fitness is selected then some of
+            //its controls can be enabled, so we disable them
+            m_fit_cmb.setDisable(is_dis);
+            m_attract_txt.setDisable(is_dis);
+            //The exatra condition here is needed to avoid enabling 
+            //the scaling control in case the exact fitness is used
+            m_ftn_scale_txt.setDisable(is_dis
+                    || (m_fit_cmb.getSelectionModel().getSelectedItem() == FitnessType.EXACT));
+        }
+    }
+
+    private void enable_non_btn_ctrls(final boolean is_dis) {
+        //m_ctrl_name_txt.setDisable(is_start);
+        m_dims_cmb.setDisable(is_dis);
+        if (!m_is_iter_cbx.isSelected()) {
+            m_max_mut_txt.setDisable(is_dis);
+        }
+        m_max_tree_size_txt.setDisable(is_dis);
+        m_max_pop_size_txt.setDisable(is_dis);
+        m_grammar_txt.setDisable(is_dis);
+        m_ch_vs_rep_sld.setDisable(is_dis);
+        m_tm_vs_tnm_sld.setDisable(is_dis);
+        m_init_pop_sld.setDisable(is_dis);
+        m_workers_dof_txt.setDisable(is_dis);
+        m_tour_cmb.setDisable(is_dis);
+        m_is_stop_cbx.setDisable(is_dis);
+        m_is_iter_cbx.setDisable(is_dis);
+        m_min_ngf_txt.setDisable(is_dis);
+        m_max_ngf_txt.setDisable(is_dis);
+
+        enable_fitness_ctrls(is_dis);
+        enable_monte_carlo_ctrls(is_dis);
+        enable_child_limit_ctrls(is_dis);
+
+        m_is_prop_pn_cbx.setDisable(is_dis);
+        m_is_scale_cbx.setDisable(is_dis);
+        m_is_avoid_equal_cbx.setDisable(is_dis);
+        m_is_opt_on_save_cbx.setDisable(is_dis);
+        m_max_gd_txt.setDisable(is_dis);
+        m_ch_sp_x_txt.setDisable(is_dis);
+        m_ch_sp_y_txt.setDisable(is_dis);
     }
 
     /**
@@ -569,10 +579,17 @@ public class FXMLController implements Initializable {
                 final double ftn_scale = Double.parseDouble(m_ftn_scale_txt.getText());
                 final boolean is_scale = m_is_scale_cbx.isSelected();
                 final boolean is_complex = m_is_compl_cbx.isSelected();
+                final boolean is_monte_carlo = m_mc_fitness_cbx.isSelected();
+                final boolean is_rec_strat_sample = m_rss_ftn_cbx.isSelected();
+                final long sample_size = Long.parseLong(m_act_sam_size_txt.getText());
+                final long min_bisect_size = Long.parseLong(m_min_bis_size_txt.getText());
+                final double sample_bisect_ratio = m_rss_bis_ratio_sld.getValue();
 
                 //Talk to Scots via interface
                 final FConfig f_cfg = new FConfig(num_ss_dofs, fitness_type,
-                        attr_size, ftn_scale, is_scale, is_complex);
+                        attr_size, ftn_scale, is_scale, is_complex,
+                        is_monte_carlo, is_rec_strat_sample, sample_size,
+                        min_bisect_size, sample_bisect_ratio);
                 ScotsFacade.INSTANCE.configure(f_cfg);
 
                 //Set the grammar
@@ -665,24 +682,6 @@ public class FXMLController implements Initializable {
                                 count_finished_dofs(mgr);
                             });
                     final ProcessManager manager = new ProcessManager(config);
-                    //Add the population filter: Experimental
-                    /*final AvgFilter filter = new AvgFilter(1.0e-4, 300000);
-                    visualizer.set_ftn_change_listener(new DofVisualizer.FitnessChange() {
-                        @Override
-                        public void change(double[] req_ftn, double[] ex_ftn) {
-                            m_executor.submit(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (filter.is_trigger(ex_ftn[1])) {
-                                        filter.set_ftn_bound(ex_ftn[0]);
-                                        filter.start_filtering();
-                                        manager.filter_individuals(filter);
-                                        filter.stop_filtering();
-                                    }
-                                }
-                            });
-                        }
-                    });*/
                     m_managers.add(manager);
                     m_managers_act.add(manager);
                     dofTab.setContent(grid_pane);
@@ -761,27 +760,69 @@ public class FXMLController implements Initializable {
         }
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
-        //Load properties
-        load_properties();
+    private void load_properties() {
+        m_prop_mgr.register(m_max_pop_size_txt);
+        m_prop_mgr.register(m_max_mut_txt);
+        m_prop_mgr.register(m_max_tree_size_txt);
+        m_prop_mgr.register(m_workers_dof_txt);
+        m_prop_mgr.register(m_ftn_scale_txt);
+        m_prop_mgr.register(m_ch_sp_x_txt);
+        m_prop_mgr.register(m_ch_sp_y_txt);
+        m_prop_mgr.register(m_ch_vs_rep_sld);
+        m_prop_mgr.register(m_tm_vs_tnm_sld);
+        m_prop_mgr.register(m_init_pop_sld);
+        m_prop_mgr.register(m_grammar_txt);
+        m_prop_mgr.register(m_min_ngf_txt);
+        m_prop_mgr.register(m_max_ngf_txt);
+        m_prop_mgr.register(m_attract_txt);
+        m_prop_mgr.register(m_tour_cmb);
+        m_prop_mgr.register(m_fit_cmb);
+        m_prop_mgr.register(m_is_stop_cbx);
+        m_prop_mgr.register(m_is_iter_cbx);
+        m_prop_mgr.register(m_is_prop_pn_cbx);
+        m_prop_mgr.register(m_is_scale_cbx);
+        m_prop_mgr.register(m_is_compl_cbx);
+        m_prop_mgr.register(m_is_child_lim_cbx);
+        m_prop_mgr.register(m_is_avoid_equal_cbx);
+        m_prop_mgr.register(m_is_opt_on_save_cbx);
+        m_prop_mgr.register(m_min_ch_cnt_txt);
+        m_prop_mgr.register(m_max_ch_cnt_txt);
+        m_prop_mgr.register(m_max_gd_txt);
+        m_prop_mgr.register(m_mc_fitness_cbx);
+        m_prop_mgr.register(m_rss_ftn_cbx);
+        m_prop_mgr.register(m_rel_sam_size_txt);
+        m_prop_mgr.register(m_min_bis_size_txt);
+        m_prop_mgr.register(m_rss_bis_ratio_sld);
 
+        //Load properties
+        m_prop_mgr.load_properties();
+    }
+
+    private void set_up_progress_bars() {
         m_main_prog_ind.setProgress(-1.0);
         m_main_prog_ind.setVisible(false);
         m_progress_box.setAlignment(Pos.CENTER_LEFT);
+    }
 
+    private void set_up_tournament_type() {
         m_tour_cmb.getItems().add(SelectionType.VALUE.get_idx(),
                 SelectionType.VALUE);
         m_tour_cmb.getItems().add(SelectionType.PROB.get_idx(),
                 SelectionType.PROB);
         m_tour_cmb.getSelectionModel().selectFirst();
+    }
 
+    private void set_up_fitness_type() {
         m_fit_cmb.getItems().add(FitnessType.EXACT);
         m_fit_cmb.getItems().add(FitnessType.ATANG);
         m_fit_cmb.getItems().add(FitnessType.INVER);
         m_fit_cmb.valueProperty().addListener(new ChangeListener<FitnessType>() {
             @Override
             public void changed(ObservableValue ov, FitnessType old_val, FitnessType new_val) {
+                //Enable and disable elements depending on fitness its type
+                final boolean is_dis = (new_val == FitnessType.EXACT);
+                m_ftn_scale_txt.setDisable(is_dis);
+                //Store the scaling factor
                 final String old_str = m_ftn_scale_txt.getText();
                 if ((old_val != null) && !old_str.trim().isEmpty()) {
                     old_val.set_scaling(Double.parseDouble(old_str));
@@ -790,12 +831,14 @@ public class FXMLController implements Initializable {
             }
         });
         m_fit_cmb.getSelectionModel().select(FitnessType.INVER);
+    }
 
-        //Add change listener
+    private void set_up_max_num_iter() {
         m_max_mut_txt.setText(Long.toString(Long.MAX_VALUE));
         m_is_iter_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+            public void changed(ObservableValue<? extends Boolean> observable,
+                    Boolean oldValue, Boolean newValue) {
                 if (m_is_iter_cbx.isSelected()) {
                     m_max_mut_txt.setDisable(true);
                     m_max_mut_val = m_max_mut_txt.getText();
@@ -806,11 +849,13 @@ public class FXMLController implements Initializable {
                 }
             }
         });
+    }
 
-        //Add listener
+    private void set_up_child_limits() {
         m_is_child_lim_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+            public void changed(ObservableValue<? extends Boolean> observable,
+                    Boolean oldValue, Boolean newValue) {
                 if (m_is_child_lim_cbx.isSelected()) {
                     m_min_ch_cnt_txt.setDisable(false);
                     m_max_ch_cnt_txt.setDisable(false);
@@ -820,26 +865,101 @@ public class FXMLController implements Initializable {
                 }
             }
         });
+    }
 
-        //Add listener
+    private void set_up_complicated_fitness() {
         m_is_compl_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+            public void changed(ObservableValue<? extends Boolean> observable,
+                    Boolean oldValue, Boolean newValue) {
                 if (m_is_compl_cbx.isSelected()) {
+                    //If the complex fitness is selected then
                     m_fit_cmb.setDisable(false);
+                    //The exact fitness does not require the scaling factor
+                    m_ftn_scale_txt.setDisable(
+                            m_fit_cmb.getSelectionModel().getSelectedItem() == FitnessType.EXACT);
                     m_attract_txt.setDisable(false);
                 } else {
+                    //If the complex fitness is not selected then diable all
                     m_fit_cmb.setDisable(true);
+                    m_ftn_scale_txt.setDisable(true);
                     m_attract_txt.setDisable(true);
                 }
             }
         });
     }
 
+    private void re_compute_mc_sample_size() {
+        final String rel_ss = m_rel_sam_size_txt.getText().trim();
+        if (!rel_ss.isEmpty()) {
+            try {
+                final double coeff = Double.parseDouble(rel_ss);
+                final long size = Math.round(m_ss_size * coeff);
+                m_act_sam_size_txt.setText(Long.toString(size));
+            } catch (NumberFormatException ex) {
+                LOGGER.log(Level.WARNING,
+                        "Could not parse relative sample size: {0}, exception: {1}",
+                        new Object[]{rel_ss, ex.getMessage()});
+            }
+        }
+    }
+
+    private void set_up_mc_fitness() {
+        m_mc_fitness_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable,
+                    Boolean oldValue, Boolean newValue) {
+                m_rss_ftn_cbx.setDisable(oldValue);
+                m_rel_sam_size_txt.setDisable(oldValue);
+                if (m_rss_ftn_cbx.isSelected()) {
+                    m_min_bis_size_txt.setDisable(oldValue);
+                    m_rss_bis_ratio_sld.setDisable(oldValue);
+                }
+            }
+        });
+        //Add the change listener for m_rel_sam_size_txt to change the m_act_sam_size_txt if needed
+        m_rel_sam_size_txt.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                    String oldValue, String newValue) {
+                re_compute_mc_sample_size();
+            }
+        });
+    }
+
+    private void set_up_rss_fitness() {
+        m_rss_ftn_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable,
+                    Boolean oldValue, Boolean newValue) {
+                m_min_bis_size_txt.setDisable(oldValue);
+                m_rss_bis_ratio_sld.setDisable(oldValue);
+            }
+        });
+    }
+
+    @Override
+    public void initialize(URL url, ResourceBundle rb) {
+        set_up_progress_bars();
+        set_up_tournament_type();
+        set_up_fitness_type();
+        set_up_max_num_iter();
+        set_up_max_num_iter();
+        set_up_child_limits();
+        set_up_complicated_fitness();
+        set_up_mc_fitness();
+        set_up_rss_fitness();
+
+        //Load properties, do this after all default initializations
+        load_properties();
+    }
+
     /**
      * Allows to perform the initial checks.
      */
     public void after_show() {
+        //Once the scene has been shown check if the fitness computing dynamic
+        //library is available, if not then open the dialog to locate it and load
         Platform.runLater(new Runnable() {
             private final FileChooser fileChooser = new FileChooser();
             private final FileChooser.ExtensionFilter extFilter
@@ -854,12 +974,12 @@ public class FXMLController implements Initializable {
             @Override
             public void run() {
                 //Check if the native library is defined
-                String lib_file_name = m_props.getProperty(LIB_FILE_NAME_PROP);
+                String lib_file_name = m_prop_mgr.get_property(PropertyManager.LIB_FILE_NAME_PROP);
                 if (lib_file_name == null) {
                     final File file = fileChooser.showOpenDialog(m_load_btn.getScene().getWindow());
                     if (file != null) {
                         lib_file_name = file.getPath();
-                        m_props.setProperty(LIB_FILE_NAME_PROP, lib_file_name);
+                        m_prop_mgr.set_property(PropertyManager.LIB_FILE_NAME_PROP, lib_file_name);
                     } else {
                         //If the library is not selected then re-try
                         Platform.runLater(this);
@@ -870,7 +990,7 @@ public class FXMLController implements Initializable {
                         + "dynamic library from {0}", lib_file_name);
                 //Attempt loading the library
                 if (ScotsFacade.INSTANCE.load_library(lib_file_name)) {
-                    m_props.remove(LIB_FILE_NAME_PROP);
+                    m_prop_mgr.remove(PropertyManager.LIB_FILE_NAME_PROP);
                     final Alert alert = new Alert(AlertType.ERROR,
                             "Faled loading the JNI dynamic library: "
                             + lib_file_name + ", please choose another one!");

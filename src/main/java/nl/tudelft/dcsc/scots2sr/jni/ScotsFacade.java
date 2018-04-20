@@ -55,6 +55,7 @@ public class ScotsFacade extends FitnessComputerClass {
     private Class<?> m_class;
     //Stores the Scots2JNI class interface methods
     private Method m_load;
+    private Method m_get_ss_size;
     private Method m_configure;
     private Method m_compute_fitness;
     private Method m_start_unfit_export;
@@ -101,6 +102,7 @@ public class ScotsFacade extends FitnessComputerClass {
             }
 
             m_load = m_class.getMethod("load", String.class);
+            m_get_ss_size = m_class.getMethod("get_state_space_size");
             m_configure = m_class.getMethod("configure", FConfig.class);
             m_compute_fitness = m_class.getMethod("compute_fitness", String.class, int.class);
             m_start_unfit_export = m_class.getMethod("start_unfit_export");
@@ -127,6 +129,21 @@ public class ScotsFacade extends FitnessComputerClass {
     public int load(final String file_name) throws FileNotFoundException,
             IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         return (Integer) m_load.invoke(null, file_name);
+    }
+
+    /**
+     * Allows to get the controller's state space size. I.e. the number of
+     * state-space grid points. This value is larger than the domain size.
+     *
+     * @return the loaded controller's state-space size.
+     * @throws IllegalArgumentException if one of the configuration parameters
+     * has an incorrect value
+     * @throws IllegalAccessException if the JNI invocation has failed
+     * @throws InvocationTargetException if the JNI invocation has failed
+     */
+    public int get_state_space_size() throws IllegalArgumentException,
+            IllegalAccessException, InvocationTargetException {
+        return (Integer) m_get_ss_size.invoke(null);
     }
 
     /**
