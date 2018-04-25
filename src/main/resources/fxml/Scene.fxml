@@ -249,7 +249,7 @@
                               <CheckBox fx:id="m_mc_fitness_cbx" mnemonicParsing="false" selected="true" text="Monte Carlo Fitness" GridPane.rowIndex="13" />
                               <TextField fx:id="m_min_bis_size_txt" promptText="The minimum sample size to do RSS bisection" text="100" GridPane.columnIndex="1" GridPane.rowIndex="16" />
                               <TextField fx:id="m_rel_sam_size_txt" promptText="The sample size coefficient relative to the grid size" text="0.1" GridPane.columnIndex="1" GridPane.rowIndex="14" />
-                              <Slider fx:id="m_rss_bis_ratio_sld" blockIncrement="0.001" layoutX="174.0" layoutY="724.0" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.2" GridPane.columnIndex="1" GridPane.rowIndex="17">
+                              <Slider fx:id="m_rss_bis_ratio_sld" blockIncrement="0.01" layoutX="174.0" layoutY="724.0" majorTickUnit="0.1" max="0.99" min="0.01" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.2" GridPane.columnIndex="1" GridPane.rowIndex="17">
                                  <opaqueInsets>
                                     <Insets />
                                  </opaqueInsets>

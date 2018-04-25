@@ -35,10 +35,14 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.FileHandler;
@@ -66,36 +70,34 @@ import javafx.scene.chart.StackedAreaChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import nl.tudelft.dcsc.scots2jni.FConfig;
+import nl.tudelft.dcsc.scots2sr.utils.Pair;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessType;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.ProcessManagerConfig;
 import nl.tudelft.dcsc.sr2jlib.ProcessManager;
 import nl.tudelft.dcsc.sr2jlib.SelectionType;
+import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
 import nl.tudelft.dcsc.sr2jlib.grammar.GrammarConfig;
 import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
+import nl.tudelft.dcsc.sr2jlib.grammar.expr.Expression;
 
+/**
+ * This is the main UI controller implementation
+ *
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
+ */
 public class FXMLController implements Initializable {
-
-    private static class Pair<kT, vT> {
-
-        public final kT m_first;
-        public final vT m_second;
-
-        public Pair(final kT first, final vT second) {
-            m_first = first;
-            m_second = second;
-        }
-    }
 
     //Stores the symbolic controller file name extension
     private static final String SYM_FILE_NAME_EXT = "sym";
@@ -208,15 +210,12 @@ public class FXMLController implements Initializable {
     private String m_max_mut_val;
     //Stores the number of loaded controller dofs
     private int m_num_dofs;
-    //Stores the number of points in the state-space grid
-    private int m_ss_size;
     //Stores the property manager
     private final PropertyManager m_prop_mgr;
 
     public FXMLController() {
         m_max_mut_val = "300000";
         m_num_dofs = 0;
-        m_ss_size = 0;
         m_prop_mgr = new PropertyManager("config.properties");
     }
 
@@ -324,10 +323,12 @@ public class FXMLController implements Initializable {
 
                 //Optimize the individual
                 if (m_is_opt_on_save_cbx.isSelected()) {
-                    LOGGER.log(Level.INFO, "Optimizing candidage individual {0}/{1}: {2}",
-                            new Object[]{(ind_idx + 1), inds.size(),
-                                ind.get_expr_list().get(0).to_text()});
+                    LOGGER.log(Level.INFO, "Optimizing individual: {0}/{1})");
+                    final String ind_orig = ind.get_expr_list().get(0).to_text();
                     ind.optimize();
+                    final String ind_opt = ind.get_expr_list().get(0).to_text();
+                    LOGGER.log(Level.FINE, "Optimized:\n{0}\n---into---\n{1}",
+                            new Object[]{ind_orig, ind_opt});
                 }
 
                 //Update progress indicator
@@ -352,38 +353,125 @@ public class FXMLController implements Initializable {
         return new Pair<>(min_ind, min_ind_str);
     }
 
+    /**
+     * Allows to convert the fitness values per dof to string
+     *
+     * @param ftn the array of fitness values per dof
+     * @return the string representing the fitness values per dof
+     */
+    private static String fitness_to_string(final Fitness[] ftn) {
+        String result = "";
+        NumberFormat formatter = new DecimalFormat("#00.00");
+        for (int idx = 0; idx < ftn.length; ++idx) {
+            result += "Dof #" + idx + ": "
+                    + formatter.format(ftn[idx].get_fitness() * 100) + "%"
+                    + (idx == (ftn.length - 1) ? "" : "\n");
+        }
+        return result;
+    }
+
+    /**
+     * Allows to show the resulting info for the exported dof controllers
+     *
+     * @param ftn the fitness objects per dof
+     */
+    private void show_resulting_info(final Fitness[] ftn) {
+        //Construct the info message
+        final String msg = "The resulting symbolic controller fitness"
+                + " values per-dof are: \n" + fitness_to_string(ftn);
+
+        //Construct the UI elements
+        final TextArea msg_area = new TextArea(msg);
+        msg_area.setEditable(false);
+        msg_area.setWrapText(true);
+        final ScrollPane scr_pane = new ScrollPane(msg_area);
+        final GridPane msg_pane = new GridPane();
+        msg_pane.setMaxWidth(Double.MAX_VALUE);
+        msg_pane.add(scr_pane, 0, 0);
+
+        //Show the alert
+        final Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Finished exporting symbolic controllers");
+        alert.getDialogPane().setContent(msg_pane);
+        alert.show();
+    }
+
+    /**
+     * Allows to get the best fit individual for each dof
+     *
+     * @param inds the container of individual and its string representations
+     */
+    private void get_best_fint_inds(final List<Pair<Individual, String>> inds) {
+        LOGGER.log(Level.FINE, "Getting the dof's best fit individuals");
+        m_managers.forEach(mgr -> {
+            //Store the individual for unfit points extraction
+            inds.add(get_best_ind(mgr.get_best_fit_ind()));
+        });
+    }
+
+    /**
+     * Allows to store the symbolic controllers per dof into file along with
+     * their fitness scores
+     *
+     * @param ctrl_file_name the file name to be used
+     * @param inds the list of individual string pairs
+     * @param ftn the fitness objects per individual
+     * @throws IOException in case the file writing fails
+     */
+    private void store_symbolic_controllers(final String ctrl_file_name,
+            final List<Pair<Individual, String>> inds,
+            final Fitness[] ftn) throws IOException {
+        //Save the symbolic controllers into a text file
+        Path file_path = Paths.get(ctrl_file_name);
+        try (final BufferedWriter writer = Files.newBufferedWriter(file_path)) {
+            NumberFormat formatter = new DecimalFormat("#00.00");
+            for (int idx = 0; idx < inds.size(); ++idx) {
+                final Pair<Individual, String> pair = inds.get(idx);
+                final String candidate = pair.m_second;
+                LOGGER.log(Level.FINE, "The shortest one is {0}", candidate);
+                writer.write("Dof #" + idx + ", "
+                        + formatter.format(ftn[idx].get_fitness() * 100)
+                        + "% fit controller: " + candidate + "\n");
+                LOGGER.log(Level.FINE, "The individual is stored");
+                writer.flush();
+            }
+        }
+    }
+
+    /**
+     * Allows to save the "best fit" symbolic controller per dof and export
+     * their unfit points.
+     *
+     * @param ctrl_file_name the controller file name
+     */
     private void start_saving(final String ctrl_file_name) {
         enable_ctrls_safe(true);
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 try {
-                    List<Individual> inds = new ArrayList<>();
-                    //Go through the Managers, get the best fit controllers
-                    //save the symbolic controllers into a text file
-                    Path file_path = Paths.get(ctrl_file_name);
-                    try (BufferedWriter writer = Files.newBufferedWriter(file_path)) {
-                        for (ProcessManager mgr : m_managers) {
-                            LOGGER.log(Level.FINE, "Getting the dof's best fit individuals");
-                            final Pair<Individual, String> result = get_best_ind(mgr.get_best_fit_ind());
-                            final String candidate = result.m_second;
-                            LOGGER.log(Level.FINE, "The shortest one is {0}", candidate);
-                            writer.write(candidate + "\n");
-                            LOGGER.log(Level.FINE, "The individual is stored");
-                            writer.flush();
-                            //Store the individual for unfit points extraction
-                            inds.add(result.m_first);
-                        }
-                    }
+                    //Obtain the best fit individuals
+                    final List<Pair<Individual, String>> inds = new ArrayList<>();
+                    get_best_fint_inds(inds);
+
                     //Get the symbolic controller file name without extension
                     final String bad_file_name = ctrl_file_name.replaceAll(
                             "\\." + SYM_FILE_NAME_EXT, "");
                     //Store the unsafe points as a BDD.
-                    ((ScotsFacade) FitnessManager.inst()).store_unfit_points(bad_file_name, inds);
-                    //Re-enable the buttons
+                    final ScotsFacade facade = (ScotsFacade) FitnessManager.inst();
+                    final Fitness[] ftn = facade.store_unfit_points(bad_file_name, inds);
+
+                    //Store the symbolic controllers into files
+                    store_symbolic_controllers(ctrl_file_name, inds, ftn);
+
+                    //Show the end info and enable the buttons
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
+                            //Show the resulting info
+                            show_resulting_info(ftn);
+
+                            //Enable the controls
                             enable_ctrls_safe(false);
                         }
                     });
@@ -415,8 +503,6 @@ public class FXMLController implements Initializable {
                     final String file_name = full_file_name.replaceFirst("[.][^.]+$", "");
                     start_logging(file_name);
                     m_num_dofs = ScotsFacade.INSTANCE.load(file_name);
-                    m_ss_size = ScotsFacade.INSTANCE.get_state_space_size();
-                    re_compute_mc_sample_size();
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
@@ -889,14 +975,20 @@ public class FXMLController implements Initializable {
         });
     }
 
+    /**
+     * Attempts to re-compute the sample size based on the state-space size
+     */
     private void re_compute_mc_sample_size() {
         final String rel_ss = m_rel_sam_size_txt.getText().trim();
-        if (!rel_ss.isEmpty()) {
+        final Object value = m_dims_cmb.getValue();
+        if (!rel_ss.isEmpty() && (value != null)) {
             try {
+                final int ss_dim = Integer.parseInt(value.toString());
+                final int ss_size = ScotsFacade.INSTANCE.get_state_space_size(ss_dim);
                 final double coeff = Double.parseDouble(rel_ss);
-                final long size = Math.round(m_ss_size * coeff);
+                final long size = Math.round(ss_size * coeff);
                 m_act_sam_size_txt.setText(Long.toString(size));
-            } catch (NumberFormatException ex) {
+            } catch (IllegalAccessException | InvocationTargetException | NumberFormatException ex) {
                 LOGGER.log(Level.WARNING,
                         "Could not parse relative sample size: {0}, exception: {1}",
                         new Object[]{rel_ss, ex.getMessage()});
@@ -905,6 +997,7 @@ public class FXMLController implements Initializable {
     }
 
     private void set_up_mc_fitness() {
+        //Add the change listener to the Monte Carlo fitness check box
         m_mc_fitness_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable,
@@ -917,6 +1010,15 @@ public class FXMLController implements Initializable {
                 }
             }
         });
+        //Add the change listener to the number of dimensions combo box
+        m_dims_cmb.valueProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                    String oldValue, String newValue) {
+                re_compute_mc_sample_size();
+            }
+        });
+
         //Add the change listener for m_rel_sam_size_txt to change the m_act_sam_size_txt if needed
         m_rel_sam_size_txt.textProperty().addListener(new ChangeListener<String>() {
             @Override

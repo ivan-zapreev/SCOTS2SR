@@ -22,10 +22,9 @@ import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 
 /**
- *
  * Realizes a filter for individuals
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class AvgFilter implements IndividualFilter {
 

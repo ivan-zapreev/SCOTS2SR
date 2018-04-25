@@ -25,7 +25,7 @@ package nl.tudelft.dcsc.scots2sr.sr;
  *
  * Represents the fitness with scaling
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class ScaledFitness extends ExtendedFitness {
 

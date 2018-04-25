@@ -37,8 +37,10 @@ import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.grid.GridObserver;
 
 /**
+ * This is a fitness tracker implementation of the grid observer class, is
+ * responsible for monitoring the current SR grid state.
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public abstract class FitnessTracker implements GridObserver {
 
@@ -171,7 +173,7 @@ public abstract class FitnessTracker implements GridObserver {
                         final double new_ftn = get_actual_fitness(ind);
                         if (new_ftn == max_ftn) {
                             best_fit.add(ind);
-                            LOGGER.log(Level.INFO,
+                            LOGGER.log(Level.FINE,
                                     "The number of {0} fit individuals is {1}",
                                     new Object[]{max_ftn, best_fit.size()});
                         } else {

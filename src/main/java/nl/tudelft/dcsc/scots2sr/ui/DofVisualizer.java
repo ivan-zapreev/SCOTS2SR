@@ -35,7 +35,7 @@ import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 /**
  * This class represents the visualizer for the dof symbolic regression process
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class DofVisualizer extends FitnessTracker {
 

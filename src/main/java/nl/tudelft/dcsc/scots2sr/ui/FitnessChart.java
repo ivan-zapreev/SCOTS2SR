@@ -33,7 +33,7 @@ import javafx.scene.layout.AnchorPane;
 /**
  * The population fitness chart diagram
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class FitnessChart extends LineChart<Number, Number> {
 

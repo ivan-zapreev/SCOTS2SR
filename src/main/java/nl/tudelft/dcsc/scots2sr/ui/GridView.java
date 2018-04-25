@@ -38,6 +38,8 @@ public class GridView extends ScrollPane {
     /**
      * The graphics animation that allows to update the canvas with the new
      * elements from the fitness update queue
+     *
+     * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
      */
     private class GridAnimation extends AnimationTimer {
 

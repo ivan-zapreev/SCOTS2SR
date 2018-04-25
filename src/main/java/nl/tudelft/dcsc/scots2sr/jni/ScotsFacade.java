@@ -29,6 +29,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tudelft.dcsc.scots2jni.Scots2JNI;
 import nl.tudelft.dcsc.scots2jni.FConfig;
+import nl.tudelft.dcsc.scots2sr.utils.Pair;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessComputerClass;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
@@ -36,10 +37,9 @@ import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 import nl.tudelft.dcsc.sr2jlib.instance.Loader;
 
 /**
- *
  * Represents the Scots/JNI facade class, is a singleton.
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class ScotsFacade extends FitnessComputerClass {
 
@@ -102,7 +102,7 @@ public class ScotsFacade extends FitnessComputerClass {
             }
 
             m_load = m_class.getMethod("load", String.class);
-            m_get_ss_size = m_class.getMethod("get_state_space_size");
+            m_get_ss_size = m_class.getMethod("get_state_space_size", int.class);
             m_configure = m_class.getMethod("configure", FConfig.class);
             m_compute_fitness = m_class.getMethod("compute_fitness", String.class, int.class);
             m_start_unfit_export = m_class.getMethod("start_unfit_export");
@@ -135,15 +135,17 @@ public class ScotsFacade extends FitnessComputerClass {
      * Allows to get the controller's state space size. I.e. the number of
      * state-space grid points. This value is larger than the domain size.
      *
+     * @param ss_dim the number of state-space dimensions
+     *
      * @return the loaded controller's state-space size.
      * @throws IllegalArgumentException if one of the configuration parameters
      * has an incorrect value
      * @throws IllegalAccessException if the JNI invocation has failed
      * @throws InvocationTargetException if the JNI invocation has failed
      */
-    public int get_state_space_size() throws IllegalArgumentException,
+    public int get_state_space_size(final int ss_dim) throws IllegalArgumentException,
             IllegalAccessException, InvocationTargetException {
-        return (Integer) m_get_ss_size.invoke(null);
+        return (Integer) m_get_ss_size.invoke(null, ss_dim);
     }
 
     /**
@@ -177,17 +179,21 @@ public class ScotsFacade extends FitnessComputerClass {
      * @param inds the manager-id to individual mapping, each manager id
      * corresponds to the dof index, the list index must correspond to the
      * manager id stored inside the given individual.
+     * @return an array of fitness objects per individual in the inds list (the
+     * same order)
      * @throws java.lang.IllegalAccessException if the JNI illegal access occurs
      * @throws java.lang.reflect.InvocationTargetException if the JNI target can
      * not be invoked
      */
-    public void store_unfit_points(final String file_name,
-            final List<Individual> inds) throws IllegalAccessException, InvocationTargetException {
+    public Fitness[] store_unfit_points(final String file_name,
+            final List< Pair<Individual, String>> inds)
+            throws IllegalAccessException, InvocationTargetException {
         //Start new unfit points export
         m_start_unfit_export.invoke(null, new Object[]{});
+        Fitness[] result = new Fitness[inds.size()];
         //Iterate over the individuals
         for (int idx = 0; idx < inds.size(); ++idx) {
-            final Individual ind = inds.get(idx);
+            final Individual ind = inds.get(idx).m_first;
             final int mgr_id = ind.get_mgr_id();
             //Check on that the manager id corresponds to the list index
             if (mgr_id != idx) {
@@ -195,19 +201,22 @@ public class ScotsFacade extends FitnessComputerClass {
                         + mgr_id + " must be equal to the array index " + idx);
             }
             //Export the unfit points, missuse the fintess compute class instance for that.
-            new FitnessComputerClass() {
+            result[idx] = new FitnessComputerClass() {
                 @Override
                 public Fitness compute_fitness(int mgr_id, String class_name)
                         throws IllegalStateException, IllegalArgumentException,
                         ClassNotFoundException, IllegalAccessException,
                         InvocationTargetException {
-                    m_export_unfit_points.invoke(null, class_name, mgr_id);
-                    return null;
+                    final Double fitness = (Double) m_export_unfit_points.invoke(null, class_name, mgr_id);
+                    return new Fitness(fitness);
                 }
             }.compute_fitness(mgr_id, ind.get_expr_array());
         }
         //Finish new unfit points export
         m_finish_unfit_export.invoke(null, file_name + UNFIT_FILE_SUFFIX);
+
+        //Return the fitness results
+        return result;
     }
 
 }

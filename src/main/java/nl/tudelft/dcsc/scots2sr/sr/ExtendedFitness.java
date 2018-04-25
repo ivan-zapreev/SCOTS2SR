@@ -27,9 +27,9 @@ import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 
 /**
  *
- * The extended fitness class
+ * The extended fitness class with an additional fitness value
  *
- * @author Dr. Ivan S. Zapreev
+ * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
 public class ExtendedFitness extends Fitness {
 
