@@ -109,7 +109,7 @@ public class FXMLController implements Initializable {
 
     //Defines the number of UI threads to be used 
     private static final int NUM_UI_WORK_THREADS = 3;
-
+    
     @FXML
     private Button m_load_btn;
     @FXML
@@ -118,7 +118,7 @@ public class FXMLController implements Initializable {
     private Button m_stop_btn;
     @FXML
     private Button m_save_btn;
-
+    
     @FXML
     private TextArea m_ctrl_name_txt;
     @FXML
@@ -177,7 +177,7 @@ public class FXMLController implements Initializable {
     private TextField m_max_ch_cnt_txt;
     @FXML
     private TextField m_max_gd_txt;
-
+    
     @FXML
     private AnchorPane m_req_ftn_pane;
     @FXML
@@ -192,7 +192,7 @@ public class FXMLController implements Initializable {
     private ProgressBar m_main_prog_ind;
     @FXML
     private HBox m_progress_box;
-
+    
     @FXML
     private CheckBox m_mc_fitness_cbx;
     @FXML
@@ -212,7 +212,7 @@ public class FXMLController implements Initializable {
     private int m_num_dofs;
     //Stores the property manager
     private final PropertyManager m_prop_mgr;
-
+    
     public FXMLController() {
         m_max_mut_val = "300000";
         m_num_dofs = 0;
@@ -235,31 +235,31 @@ public class FXMLController implements Initializable {
 
     //The executor to handle parallel tasks
     private final ExecutorService m_executor = Executors.newFixedThreadPool(NUM_UI_WORK_THREADS);
-
+    
     private void enable_ctrls_safe(final boolean is_start) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start);
         m_main_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(is_start);
         m_stop_btn.setDisable(true);
-
+        
         enable_non_btn_ctrls(is_start);
-
+        
         m_dims_cmb.setDisable(is_start);
     }
-
+    
     private void enable_ctrls_load(final boolean is_start, final boolean is_ok) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start || !is_ok);
         m_main_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(true);
         m_stop_btn.setDisable(true);
-
+        
         enable_non_btn_ctrls(is_start);
-
+        
         m_dims_cmb.setDisable(is_start || !is_ok);
     }
-
+    
     private void stop_logging() {
         Logger global_logger = Logger.getLogger("");
         Handler[] handlers = global_logger.getHandlers();
@@ -268,7 +268,7 @@ public class FXMLController implements Initializable {
             global_logger.removeHandler(handler);
         }
     }
-
+    
     private void start_logging(final String file_name) {
         final String full_file_name = file_name + ".gp.log";
         try {
@@ -312,7 +312,7 @@ public class FXMLController implements Initializable {
     private Pair<Individual, String> get_best_ind(List<Individual> inds) throws IllegalStateException {
         String min_ind_str = "";
         Individual min_ind = null;
-        update_main_progress(0.0);
+        update_main_progress(-1.0);
         LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
         if (inds.isEmpty()) {
             throw new IllegalStateException("The best individuals list is emty!");
@@ -323,16 +323,22 @@ public class FXMLController implements Initializable {
 
                 //Optimize the individual
                 if (m_is_opt_on_save_cbx.isSelected()) {
-                    LOGGER.log(Level.INFO, "Optimizing individual: {0}/{1})");
+                    LOGGER.log(Level.INFO, "Optimizing individual: {0}/{1})",
+                            new Object[]{ind_idx + 1, inds.size()});
+                    
                     final String ind_orig = ind.get_expr_list().get(0).to_text();
                     ind.optimize();
                     final String ind_opt = ind.get_expr_list().get(0).to_text();
+                    
                     LOGGER.log(Level.FINE, "Optimized:\n{0}\n---into---\n{1}",
                             new Object[]{ind_orig, ind_opt});
                 }
 
-                //Update progress indicator
-                update_main_progress(((double) (ind_idx + 1)) / ((double) inds.size()));
+                //Update progress indicator, only do it when the percentage is high enough
+                double percentage = ((double) (ind_idx + 1)) / ((double) inds.size());
+                if (percentage > 0.1) {
+                    update_main_progress(percentage);
+                }
 
                 //Get the textual representatio
                 final String ind_str = ind.get_expr_list().get(0).to_text();
@@ -492,10 +498,10 @@ public class FXMLController implements Initializable {
         };
         m_executor.submit(task);
     }
-
+    
     private void start_loading(final String full_file_name) {
         enable_ctrls_load(true, false);
-
+        
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -540,7 +546,7 @@ public class FXMLController implements Initializable {
     private final List<ProcessManager> m_managers = new ArrayList<>();
     //Stores the list of active managers
     private final List<ProcessManager> m_managers_act = new ArrayList<>();
-
+    
     private void enable_monte_carlo_ctrls(final boolean is_dis) {
         m_mc_fitness_cbx.setDisable(is_dis);
         if (m_mc_fitness_cbx.isSelected()) {
@@ -552,7 +558,7 @@ public class FXMLController implements Initializable {
             }
         }
     }
-
+    
     private void enable_child_limit_ctrls(final boolean is_dis) {
         m_is_child_lim_cbx.setDisable(is_dis);
         if (m_is_child_lim_cbx.isSelected()) {
@@ -560,7 +566,7 @@ public class FXMLController implements Initializable {
             m_max_ch_cnt_txt.setDisable(is_dis);
         }
     }
-
+    
     private void enable_fitness_ctrls(final boolean is_dis) {
         m_is_compl_cbx.setDisable(is_dis);
         if (m_is_compl_cbx.isSelected()) {
@@ -574,7 +580,7 @@ public class FXMLController implements Initializable {
                     || (m_fit_cmb.getSelectionModel().getSelectedItem() == FitnessType.EXACT));
         }
     }
-
+    
     private void enable_non_btn_ctrls(final boolean is_dis) {
         //m_ctrl_name_txt.setDisable(is_start);
         m_dims_cmb.setDisable(is_dis);
@@ -593,11 +599,11 @@ public class FXMLController implements Initializable {
         m_is_iter_cbx.setDisable(is_dis);
         m_min_ngf_txt.setDisable(is_dis);
         m_max_ngf_txt.setDisable(is_dis);
-
+        
         enable_fitness_ctrls(is_dis);
         enable_monte_carlo_ctrls(is_dis);
         enable_child_limit_ctrls(is_dis);
-
+        
         m_is_prop_pn_cbx.setDisable(is_dis);
         m_is_scale_cbx.setDisable(is_dis);
         m_is_avoid_equal_cbx.setDisable(is_dis);
@@ -615,16 +621,16 @@ public class FXMLController implements Initializable {
         m_run_btn.setDisable(is_start);
         m_stop_btn.setDisable(!is_start);
         m_save_btn.setDisable(is_start || !is_ok);
-
+        
         enable_non_btn_ctrls(is_start);
-
+        
         if (!is_start && is_stop_mgrs) {
             m_managers.forEach((manager) -> {
                 manager.stop(true);
             });
         }
     }
-
+    
     @FXML
     public void stopRunning(ActionEvent event) {
         enable_ctrls_run(false, true, true);
@@ -790,11 +796,11 @@ public class FXMLController implements Initializable {
     private void stop_manager_found(final int mgr_idx) {
         m_managers.get(mgr_idx).stop(true);
     }
-
+    
     @FXML
     public void startRunning(ActionEvent event) {
         enable_ctrls_run(true, true, false);
-
+        
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
@@ -820,7 +826,7 @@ public class FXMLController implements Initializable {
         };
         m_executor.submit(task);
     }
-
+    
     @FXML
     public void saveFileSelection(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -833,7 +839,7 @@ public class FXMLController implements Initializable {
             start_saving(file.getPath());
         }
     }
-
+    
     @FXML
     public void openFileSelection(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
@@ -845,7 +851,7 @@ public class FXMLController implements Initializable {
             start_loading(file.getPath());
         }
     }
-
+    
     private void load_properties() {
         m_prop_mgr.register(m_max_pop_size_txt);
         m_prop_mgr.register(m_max_mut_txt);
@@ -883,13 +889,13 @@ public class FXMLController implements Initializable {
         //Load properties
         m_prop_mgr.load_properties();
     }
-
+    
     private void set_up_progress_bars() {
         m_main_prog_ind.setProgress(-1.0);
         m_main_prog_ind.setVisible(false);
         m_progress_box.setAlignment(Pos.CENTER_LEFT);
     }
-
+    
     private void set_up_tournament_type() {
         m_tour_cmb.getItems().add(SelectionType.VALUE.get_idx(),
                 SelectionType.VALUE);
@@ -897,7 +903,7 @@ public class FXMLController implements Initializable {
                 SelectionType.PROB);
         m_tour_cmb.getSelectionModel().selectFirst();
     }
-
+    
     private void set_up_fitness_type() {
         m_fit_cmb.getItems().add(FitnessType.EXACT);
         m_fit_cmb.getItems().add(FitnessType.ATANG);
@@ -918,7 +924,7 @@ public class FXMLController implements Initializable {
         });
         m_fit_cmb.getSelectionModel().select(FitnessType.INVER);
     }
-
+    
     private void set_up_max_num_iter() {
         m_max_mut_txt.setText(Long.toString(Long.MAX_VALUE));
         m_is_iter_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -936,7 +942,7 @@ public class FXMLController implements Initializable {
             }
         });
     }
-
+    
     private void set_up_child_limits() {
         m_is_child_lim_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -952,7 +958,7 @@ public class FXMLController implements Initializable {
             }
         });
     }
-
+    
     private void set_up_complicated_fitness() {
         m_is_compl_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -995,7 +1001,7 @@ public class FXMLController implements Initializable {
             }
         }
     }
-
+    
     private void set_up_mc_fitness() {
         //Add the change listener to the Monte Carlo fitness check box
         m_mc_fitness_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
@@ -1028,7 +1034,7 @@ public class FXMLController implements Initializable {
             }
         });
     }
-
+    
     private void set_up_rss_fitness() {
         m_rss_ftn_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
@@ -1039,7 +1045,7 @@ public class FXMLController implements Initializable {
             }
         });
     }
-
+    
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         set_up_progress_bars();
@@ -1067,12 +1073,12 @@ public class FXMLController implements Initializable {
             private final FileChooser.ExtensionFilter extFilter
                     = new FileChooser.ExtensionFilter("SCOTS2DLL dynamic library",
                             "*.dylib", "*.dll", "*.so");
-
+            
             {
                 fileChooser.setTitle("Load Native Library");
                 fileChooser.getExtensionFilters().add(extFilter);
             }
-
+            
             @Override
             public void run() {
                 //Check if the native library is defined
