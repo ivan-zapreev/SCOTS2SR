@@ -80,6 +80,15 @@ public class PropertyManager {
     }
 
     /**
+     * Allows to get the absolute path name for the properties file
+     *
+     * @return the absolute path name for the properties file
+     */
+    public String get_abs_file_name() {
+        return m_props_file.getAbsolutePath();
+    }
+
+    /**
      * Allows to load the properties from file
      */
     public void load_properties() {

@@ -89,6 +89,9 @@ public class ScotsFacade extends FitnessComputerClass {
             final String name = Scots2JNI.class.getName();
             m_class = m_loader.loadClassNC(name);
 
+            LOGGER.log(Level.INFO, "Loading the SCOTS2DLL "
+                    + "dynamic library from {0}", lib_file_name);
+
             //Load the Native library within the class as otherwise 
             //it is not accessible through the custom class loader
             try {
