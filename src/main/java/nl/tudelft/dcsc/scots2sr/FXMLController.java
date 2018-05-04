@@ -750,7 +750,6 @@ public class FXMLController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                m_grid_pane.getChildren().clear();
                 final int num_is_dofs = m_num_dofs - num_ss_dofs;
                 m_log.info("Preparing to start symbolic regression");
 
@@ -771,6 +770,8 @@ public class FXMLController implements Initializable {
                     }
                 };
 
+                m_log.info("Instantiating Process Manager for " + num_is_dofs + " dofs.");
+                
                 //Instantiate the process manager config
                 final ProcessManagerConfig config = new ProcessManagerConfig(
                         0, init_pop_mult, num_workers, max_mutations,
@@ -782,7 +783,7 @@ public class FXMLController implements Initializable {
 
                 //Instantiate the process manager
                 m_manager = new ProcessManager(config);
-                visualizer.set_active(true);
+                m_grid_pane.getChildren().clear();
                 m_grid_pane.getChildren().add(grid_view);
 
                 //Start the process manager

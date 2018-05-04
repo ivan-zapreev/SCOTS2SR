@@ -111,6 +111,9 @@ public class PMVisualizer extends FitnessTracker {
         this.m_ex_chart = new FitnessChart(ex_ftn_pane, "Exact population fitness");
         this.m_co_chart = new FitnessChart(co_ftn_pane, "Complex population fitness");
         this.m_ftn_change = null;
+
+        this.m_co_chart.set_active();
+        this.m_ex_chart.set_active();
     }
 
     @Override
@@ -201,17 +204,5 @@ public class PMVisualizer extends FitnessTracker {
         m_ex_chart.stop();
         //Stop the progress update
         m_prog_ind.setVisible(false);
-    }
-
-    /**
-     * Shall be called when the manager is to submit data to the
-     *
-     * @param is_active true if the manager is set active, otherwise false
-     */
-    public void set_active(final boolean is_active) {
-        if (is_active) {
-            m_co_chart.set_active();
-            m_ex_chart.set_active();
-        }
     }
 }
