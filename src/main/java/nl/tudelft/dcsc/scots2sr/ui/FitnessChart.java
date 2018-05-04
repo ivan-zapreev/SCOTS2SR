@@ -124,7 +124,7 @@ public class FitnessChart extends LineChart<Number, Number> {
         this.m_name = name;
         this.m_animation = new ChartAnimation();
 
-        this.setTitle("Fitness " + this.m_name);
+        this.setTitle(this.m_name);
 
         this.m_mean_ser = new XYChart.Series<>();
         this.m_mdev_ser = new XYChart.Series<>();
