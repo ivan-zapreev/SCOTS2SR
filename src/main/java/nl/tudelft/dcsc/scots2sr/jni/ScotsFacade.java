@@ -179,47 +179,36 @@ public class ScotsFacade extends FitnessComputerClass {
      *
      * @param file_name the file name, without the extension (will be stored as
      * a BDD)
-     * @param inds the manager-id to individual mapping, each manager id
-     * corresponds to the dof index, the list index must correspond to the
-     * manager id stored inside the given individual.
+     * @param ind stores the best fit individual
      * @return an array of fitness objects per individual in the inds list (the
      * same order)
      * @throws java.lang.IllegalAccessException if the JNI illegal access occurs
      * @throws java.lang.reflect.InvocationTargetException if the JNI target can
      * not be invoked
      */
-    public Fitness[] store_unfit_points(final String file_name,
-            final List< Pair<Individual, String>> inds)
+    public Fitness store_unfit_points(
+            final String file_name, final Individual ind)
             throws IllegalAccessException, InvocationTargetException {
         //Start new unfit points export
         m_start_unfit_export.invoke(null, new Object[]{});
-        Fitness[] result = new Fitness[inds.size()];
-        //Iterate over the individuals
-        for (int idx = 0; idx < inds.size(); ++idx) {
-            final Individual ind = inds.get(idx).m_first;
-            final int mgr_id = ind.get_mgr_id();
-            //Check on that the manager id corresponds to the list index
-            if (mgr_id != idx) {
-                throw new IllegalArgumentException("Theindividual's manager index "
-                        + mgr_id + " must be equal to the array index " + idx);
+
+        //Export the unfit points, missuse the fintess compute class instance for that.
+        Fitness ftn = new FitnessComputerClass() {
+            @Override
+            public Fitness compute_fitness(int mgr_id, String class_name)
+                    throws IllegalStateException, IllegalArgumentException,
+                    ClassNotFoundException, IllegalAccessException,
+                    InvocationTargetException {
+                final Double fitness = (Double) m_export_unfit_points.invoke(null, class_name, mgr_id);
+                return new Fitness(fitness);
             }
-            //Export the unfit points, missuse the fintess compute class instance for that.
-            result[idx] = new FitnessComputerClass() {
-                @Override
-                public Fitness compute_fitness(int mgr_id, String class_name)
-                        throws IllegalStateException, IllegalArgumentException,
-                        ClassNotFoundException, IllegalAccessException,
-                        InvocationTargetException {
-                    final Double fitness = (Double) m_export_unfit_points.invoke(null, class_name, mgr_id);
-                    return new Fitness(fitness);
-                }
-            }.compute_fitness(mgr_id, ind.get_expr_array());
-        }
+        }.compute_fitness(ind.get_mgr_id(), ind.get_expr_array());
+
         //Finish new unfit points export
         m_finish_unfit_export.invoke(null, file_name + UNFIT_FILE_SUFFIX);
 
         //Return the fitness results
-        return result;
+        return ftn;
     }
 
 }

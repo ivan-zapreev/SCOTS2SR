@@ -24,20 +24,18 @@ package nl.tudelft.dcsc.scots2sr.ui;
 import javafx.animation.AnimationTimer;
 import nl.tudelft.dcsc.scots2sr.sr.ExtendedFitness;
 import nl.tudelft.dcsc.scots2sr.sr.FitnessTracker;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.Separator;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.layout.AnchorPane;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
 
 /**
- * This class represents the visualizer for the dof symbolic regression process
+ * This class represents the visualizer for the Process Manager Progress
+ * visualizer for symbolic regression process
  *
  * @author <a href="mailto:ivan.zapreev@gmail.com"> Dr. Ivan S. Zapreev </a>
  */
-public class DofVisualizer extends FitnessTracker {
+public class PMVisualizer extends FitnessTracker {
 
     /**
      * This functional interface is needed for fitness change call-backs
@@ -67,7 +65,7 @@ public class DofVisualizer extends FitnessTracker {
             if (m_prev != 0) {
                 if ((now - m_prev) >= MIN_UPD_INTERVAL) {
                     //Update the fitness values
-                    DofVisualizer.this.update_fitness();
+                    PMVisualizer.this.update_fitness();
                     //Remember the new previos time
                     m_prev = now;
                 }
@@ -80,9 +78,9 @@ public class DofVisualizer extends FitnessTracker {
 
     private boolean m_is_update;
     private final ChartUpdater m_chart_upd;
-    private final ProgressIndicator m_run_prg;
+    private final ProgressBar m_prog_ind;
     private final GridView m_grid_view;
-    private final FitnessChart m_req_chart;
+    private final FitnessChart m_co_chart;
     private final FitnessChart m_ex_chart;
     private FitnessChange m_ftn_change;
 
@@ -91,38 +89,27 @@ public class DofVisualizer extends FitnessTracker {
      *
      * @param size_x the number of x elements in the grid
      * @param size_y the number of y elements in the grid
-     * @param cont the progress indicator container
-     * @param dof_title the dof title
-     * @param ph the preferred indicator height
-     * @param pw the preferred indicator width
+     * @param prog_ind the progress indicator to be used
      * @param grid_view the grid view for visualization
-     * @param req_chart the requested fitness chart
-     * @param ex_chart the exact fitness chart
+     * @param ex_ftn_pane the pane for exact fitness chart
+     * @param co_ftn_pane the pane for complex fitness chart
      */
-    public DofVisualizer(final int size_x,
+    public PMVisualizer(final int size_x,
             final int size_y,
-            final HBox cont,
-            final String dof_title,
-            final double ph, final double pw,
+            final ProgressBar prog_ind,
             final GridView grid_view,
-            final FitnessChart req_chart,
-            final FitnessChart ex_chart) {
+            final AnchorPane ex_ftn_pane,
+            final AnchorPane co_ftn_pane) {
         super(size_x, size_y);
 
         this.m_is_update = false;
         this.m_chart_upd = new ChartUpdater();
-        this.m_run_prg = new ProgressIndicator();
-        this.m_run_prg.setProgress(-1.0);
-        this.m_run_prg.setPrefHeight(ph);
-        this.m_run_prg.setPrefWidth(pw);
-        this.m_run_prg.setVisible(false);
-        cont.getChildren().add(new Label(dof_title + ": "));
-        cont.getChildren().add(m_run_prg);
-        cont.getChildren().add(new Separator(Orientation.VERTICAL));
+        this.m_prog_ind = prog_ind;
+        this.m_prog_ind.setProgress(-1.0);
 
         this.m_grid_view = grid_view;
-        this.m_req_chart = req_chart;
-        this.m_ex_chart = ex_chart;
+        this.m_ex_chart = new FitnessChart(ex_ftn_pane, "Exact population fitness");
+        this.m_co_chart = new FitnessChart(co_ftn_pane, "Complex population fitness");
         this.m_ftn_change = null;
     }
 
@@ -131,10 +118,10 @@ public class DofVisualizer extends FitnessTracker {
         //Start the grid animation
         m_grid_view.start();
         //Start the chart animations
-        m_req_chart.start();
+        m_co_chart.start();
         m_ex_chart.start();
         //Start the progress update
-        m_run_prg.setVisible(true);
+        m_prog_ind.setVisible(true);
         //Start the chart updater
         m_chart_upd.start();
     }
@@ -196,7 +183,7 @@ public class DofVisualizer extends FitnessTracker {
                 m_ftn_change.change(req_ftn, ex_ftn);
             }
             //Schedule the chart updates
-            m_req_chart.schedule_update(req_ftn);
+            m_co_chart.schedule_update(req_ftn);
             m_ex_chart.schedule_update(ex_ftn);
             //Mark the update as done
             m_is_update = false;
@@ -210,10 +197,10 @@ public class DofVisualizer extends FitnessTracker {
         //Stop the grid animation
         m_grid_view.stop();
         //Stop the grichartd animation
-        m_req_chart.stop();
+        m_co_chart.stop();
         m_ex_chart.stop();
         //Stop the progress update
-        m_run_prg.setVisible(false);
+        m_prog_ind.setVisible(false);
     }
 
     /**
@@ -223,7 +210,7 @@ public class DofVisualizer extends FitnessTracker {
      */
     public void set_active(final boolean is_active) {
         if (is_active) {
-            m_req_chart.set_active();
+            m_co_chart.set_active();
             m_ex_chart.set_active();
         }
     }

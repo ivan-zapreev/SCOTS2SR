@@ -21,9 +21,11 @@
                         <Button fx:id="m_stop_btn" disable="true" mnemonicParsing="false" onAction="#stopRunning" text="Stop" />
                         <Button fx:id="m_save_btn" disable="true" mnemonicParsing="false" onAction="#saveFileSelection" text="Save" />
                         <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="3.0" />
-                  <ProgressBar fx:id="m_main_prog_ind" prefHeight="20.0" prefWidth="41.0" progress="0.0" />
-                  <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="0.0" />
-                  <HBox fx:id="m_progress_box" prefHeight="27.0" prefWidth="665.0" />
+                  <AnchorPane prefHeight="27.0" prefWidth="357.0">
+                     <children>
+                        <ProgressBar fx:id="m_prog_ind" prefHeight="27.0" prefWidth="357.0" progress="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                     </children>
+                  </AnchorPane>
                     </items>
                 </ToolBar>
          </top>
@@ -241,7 +243,7 @@
                           <items>
                             <AnchorPane fx:id="m_ex_ftn_pane" minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                  <children>
-                                    <StackedAreaChart fx:id="m_ex_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Population fitness (Exact)" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                    <StackedAreaChart fx:id="m_ex_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Exact population fitness" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                        <xAxis>
                                           <NumberAxis label="mutation" side="BOTTOM" />
                                        </xAxis>
@@ -253,7 +255,7 @@
                               </AnchorPane>
                             <AnchorPane fx:id="m_req_ftn_pane" minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                  <children>
-                                            <StackedAreaChart fx:id="m_req_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Population fitness (Complex)" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <StackedAreaChart fx:id="m_req_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Complex population fitness" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                 <xAxis>
                                                     <NumberAxis label="mutation" side="BOTTOM" />
                                                 </xAxis>
@@ -275,11 +277,7 @@
                <children>
                   <TitledPane collapsible="false" prefHeight="1104.0" prefWidth="632.0" text="Grid view" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                      <content>
-                            <TabPane fx:id="m_dof_tab" prefHeight="907.0" prefWidth="630.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                           <opaqueInsets>
-                              <Insets bottom="4.0" left="4.0" right="4.0" top="4.0" />
-                           </opaqueInsets>
-                        </TabPane>
+                        <Pane fx:id="m_grid_pane" prefHeight="200.0" prefWidth="200.0" />
                      </content>
                   </TitledPane>
                </children>

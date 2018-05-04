@@ -25,8 +25,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,7 +56,7 @@ public class PropertyManager {
     //Stores the properties
     private final Properties m_props;
     //Stores the list of registered controls
-    private final List<Control> m_controls;
+    private final Map<String, Control> m_controls;
 
     /**
      * The basic constructor
@@ -66,17 +66,18 @@ public class PropertyManager {
     public PropertyManager(final String file_name) {
         m_props_file = new File(file_name);
         m_props = new Properties();
-        m_controls = new ArrayList<>();
+        m_controls = new HashMap<>();
     }
 
     /**
      * Allows to register control whoes value is to be stored/loaded in/from
      * properties
      *
-     * @param ctrl the control
+     * @param name the control property name
+     * @param ctrl the control object
      */
-    public void register(final Control ctrl) {
-        m_controls.add(ctrl);
+    public void register(final String name, final Control ctrl) {
+        m_controls.put(name, ctrl);
     }
 
     /**
@@ -95,9 +96,9 @@ public class PropertyManager {
         try {
             try (FileReader reader = new FileReader(m_props_file)) {
                 m_props.load(reader);
-                for (int idx = 0; idx < m_controls.size(); idx++) {
-                    get_prop(PROPERTY_IDX_PREF + idx, m_controls.get(idx));
-                }
+                m_controls.forEach((name, control)->{
+                    get_prop(name, control);
+                });
             }
         } catch (IOException ex) {
             LOGGER.log(Level.WARNING, "Unable to load config file: {0}",
@@ -111,9 +112,9 @@ public class PropertyManager {
     public void save_properties() {
         try {
             try (FileWriter writer = new FileWriter(m_props_file)) {
-                for (int idx = 0; idx < m_controls.size(); idx++) {
-                    set_prop(PROPERTY_IDX_PREF + idx, m_controls.get(idx));
-                }
+                m_controls.forEach((name, control)->{
+                    set_prop(name, control);
+                });
                 m_props.store(writer, "Settings");
             }
         } catch (IOException ex) {

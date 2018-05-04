@@ -23,8 +23,7 @@ package nl.tudelft.dcsc.scots2sr;
 
 import java.io.BufferedWriter;
 import nl.tudelft.dcsc.scots2sr.jni.ScotsFacade;
-import nl.tudelft.dcsc.scots2sr.ui.DofVisualizer;
-import nl.tudelft.dcsc.scots2sr.ui.FitnessChart;
+import nl.tudelft.dcsc.scots2sr.ui.PMVisualizer;
 import nl.tudelft.dcsc.scots2sr.ui.GridView;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -38,7 +37,6 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
@@ -58,9 +56,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
@@ -71,11 +67,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Tab;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 
@@ -187,11 +182,9 @@ public class FXMLController implements Initializable {
     @FXML
     private StackedAreaChart m_ex_ftn_crt;
     @FXML
-    private TabPane m_dof_tab;
+    private Pane m_grid_pane;
     @FXML
-    private ProgressBar m_main_prog_ind;
-    @FXML
-    private HBox m_progress_box;
+    private ProgressBar m_prog_ind;
 
     @FXML
     private CheckBox m_mc_fitness_cbx;
@@ -208,8 +201,6 @@ public class FXMLController implements Initializable {
     @FXML
     private ListView<String> m_log_lst;
 
-    //Stores the cached number of iterations
-    private String m_max_mut_val;
     //Stores the number of loaded controller dofs
     private int m_num_dofs;
     //Stores the property manager
@@ -220,13 +211,10 @@ public class FXMLController implements Initializable {
     //The executor to handle parallel tasks
     private final ExecutorService m_executor = Executors.newFixedThreadPool(NUM_UI_WORK_THREADS);
 
-    //Stores the list of managers
-    private final List<ProcessManager> m_managers = new ArrayList<>();
-    //Stores the list of active managers
-    private final List<ProcessManager> m_managers_act = new ArrayList<>();
+    //Stores the process manager
+    private ProcessManager m_manager = null;
 
     public FXMLController() {
-        m_max_mut_val = "300000";
         m_num_dofs = 0;
         m_prop_mgr = new PropertyManager("config.properties");
         m_log = null;
@@ -240,7 +228,7 @@ public class FXMLController implements Initializable {
         m_executor.shutdownNow();
         enable_ctrls_load(false, true);
         enable_ctrls_run(false, true, true);
-        //Store properties
+        //Store properties,
         m_prop_mgr.save_properties();
         //Close the handlers
         stop_logging();
@@ -249,7 +237,7 @@ public class FXMLController implements Initializable {
     private void enable_ctrls_safe(final boolean is_start) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start);
-        m_main_prog_ind.setVisible(is_start);
+        m_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(is_start);
         m_stop_btn.setDisable(true);
 
@@ -261,7 +249,7 @@ public class FXMLController implements Initializable {
     private void enable_ctrls_load(final boolean is_start, final boolean is_ok) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start || !is_ok);
-        m_main_prog_ind.setVisible(is_start);
+        m_prog_ind.setVisible(is_start);
         m_save_btn.setDisable(true);
         m_stop_btn.setDisable(true);
 
@@ -309,9 +297,26 @@ public class FXMLController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                m_main_prog_ind.setProgress(value);
+                m_prog_ind.setProgress(value);
             }
         });
+    }
+
+    /**
+     * Allows to compute the individual size (as an eucledian norm of text size
+     * vector)
+     *
+     * @param ind_str the list of individual's functions per dof represented as
+     * text
+     * @return the individual size
+     */
+    private double compute_ind_size(List<String> ind_str) {
+        double sum = 0.0;
+        for (String str : ind_str) {
+            final int size = str.length();
+            sum += size * size;
+        }
+        return Math.sqrt(sum);
     }
 
     /**
@@ -321,15 +326,20 @@ public class FXMLController implements Initializable {
      * @return the pair of individual and its prepared string representation.
      * @throws IllegalStateException in case the list of individuals is empty
      */
-    private Pair<Individual, String> get_best_ind(final int mgr_id,
-            List<Individual> inds) throws IllegalStateException {
-        String min_ind_str = "";
+    private Pair<Individual, List<String>> get_best_fit_ind() throws IllegalStateException {
         Individual min_ind = null;
+        List<String> min_ind_str = null;
+        double min_ind_str_size = Double.MAX_VALUE;
         update_main_progress(-1.0);
 
-        LOGGER.log(Level.FINE, "Got {0} individuals", inds.size());
-        m_log.info("Started getting the best individual for dof: " + mgr_id);
+        m_log.info("Started getting the best fit infividuals");
 
+        //Retrieve all the best and equally fit individuals
+        final List<Individual> inds = m_manager.get_best_fit_ind();
+        LOGGER.log(Level.INFO, "Getting the best fit individuals, "
+                + " got {0} to consider", inds.size());
+
+        //Check if the list is empty, it should not be
         if (inds.isEmpty()) {
             m_log.err("There is no single individual available!");
             throw new IllegalStateException("The best individuals list is emty!");
@@ -339,19 +349,14 @@ public class FXMLController implements Initializable {
                 //Get the individual
                 final Individual ind = inds.get(ind_idx);
 
+                LOGGER.log(Level.INFO, "Considering individual: {0}/{1})",
+                        new Object[]{ind_idx + 1, inds.size()});
+
                 //Optimize the individual
                 if (m_is_opt_on_save_cbx.isSelected()) {
-                    LOGGER.log(Level.INFO, "Optimizing individual: {0}/{1})",
-                            new Object[]{ind_idx + 1, inds.size()});
                     m_log.info("Started optimizing individual size for: "
                             + (ind_idx + 1) + "/" + inds.size());
-
-                    final String ind_orig = ind.get_expr_list().get(0).to_text();
                     ind.optimize();
-                    final String ind_opt = ind.get_expr_list().get(0).to_text();
-
-                    LOGGER.log(Level.FINE, "Optimized:\n{0}\n---into---\n{1}",
-                            new Object[]{ind_orig, ind_opt});
                     m_log.info("Finished optimizing individual size for: "
                             + (ind_idx + 1) + "/" + inds.size());
                 }
@@ -362,42 +367,21 @@ public class FXMLController implements Initializable {
                     update_main_progress(percentage);
                 }
 
-                //Get the textual representatio
-                final String ind_str = ind.get_expr_list().get(0).to_text();
+                //Get minimum individual size
+                final List<String> ind_str = ind.get_expr_text();
+                final double ind_str_size = compute_ind_size(ind_str);
                 //Choose the shortest representation
-                if (min_ind_str.isEmpty()) {
+                if ((min_ind_str == null) || (min_ind_str_size > ind_str_size)) {
                     min_ind_str = ind_str;
                     min_ind = ind;
-                } else {
-                    final String ind_str_trm = ind_str.trim();
-                    if (min_ind_str.length() > ind_str_trm.length()) {
-                        min_ind_str = ind_str_trm;
-                        min_ind = ind;
-                    }
+                    min_ind_str_size = ind_str_size;
                 }
             }
         }
         update_main_progress(-1.0);
 
-        m_log.info("Finished getting the best individual for dof: " + mgr_id);
+        m_log.info("Finished getting the best fit infividuals.");
         return new Pair<>(min_ind, min_ind_str);
-    }
-
-    /**
-     * Allows to convert the fitness values per dof to string
-     *
-     * @param ftn the array of fitness values per dof
-     * @return the string representing the fitness values per dof
-     */
-    private static String fitness_to_string(final Fitness[] ftn) {
-        String result = "";
-        NumberFormat formatter = new DecimalFormat("#00.00");
-        for (int idx = 0; idx < ftn.length; ++idx) {
-            result += "Dof #" + idx + ": "
-                    + formatter.format(ftn[idx].get_fitness() * 100) + "%"
-                    + (idx == (ftn.length - 1) ? "" : "\n");
-        }
-        return result;
     }
 
     /**
@@ -405,10 +389,11 @@ public class FXMLController implements Initializable {
      *
      * @param ftn the fitness objects per dof
      */
-    private void show_resulting_info(final Fitness[] ftn) {
+    private void show_resulting_info(final Fitness ftn) {
         //Construct the info message
-        final String msg = "The resulting symbolic controller fitness"
-                + " values per-dof are: \n" + fitness_to_string(ftn);
+        NumberFormat formatter = new DecimalFormat("#00.00");
+        final String msg = "The controller's fitness is: "
+                + formatter.format(ftn.get_fitness() * 100) + "%";
         m_log.info(msg);
 
         //Construct the UI elements
@@ -429,44 +414,31 @@ public class FXMLController implements Initializable {
     }
 
     /**
-     * Allows to get the best fit individual for each dof
-     *
-     * @param inds the container of individual and its string representations
-     */
-    private void get_best_fint_inds(final List<Pair<Individual, String>> inds) {
-        m_log.info("Started getting the best fit infividuals.");
-        LOGGER.log(Level.INFO, "Getting the dof's best fit individuals");
-        m_managers.forEach(mgr -> {
-            //Store the individual for unfit points extraction
-            inds.add(get_best_ind(mgr.get_mgr_id(), mgr.get_best_fit_ind()));
-        });
-        m_log.info("Finished getting the best fit infividuals.");
-    }
-
-    /**
      * Allows to store the symbolic controllers per dof into file along with
      * their fitness scores
      *
      * @param ctrl_file_name the file name to be used
-     * @param inds the list of individual string pairs
-     * @param ftn the fitness objects per individual
+     * @param ind_str stores the string representation of the individual
+     * @param ftn the fitness object of the individual
      * @throws IOException in case the file writing fails
      */
-    private void store_symbolic_controllers(final String ctrl_file_name,
-            final List<Pair<Individual, String>> inds,
-            final Fitness[] ftn) throws IOException {
+    private void store_symbolic_controllers(
+            final String ctrl_file_name, final List<String> ind_str,
+            final Fitness ftn) throws IOException {
         m_log.info("Started saving symbolic controller: " + ctrl_file_name);
         //Save the symbolic controllers into a text file
         Path file_path = Paths.get(ctrl_file_name);
         try (final BufferedWriter writer = Files.newBufferedWriter(file_path)) {
+            //Dump the total fitness
             NumberFormat formatter = new DecimalFormat("#00.00");
-            for (int idx = 0; idx < inds.size(); ++idx) {
-                final Pair<Individual, String> pair = inds.get(idx);
-                final String candidate = pair.m_second;
-                LOGGER.log(Level.FINE, "The shortest one is {0}", candidate);
-                writer.write("Dof #" + idx + ", "
-                        + formatter.format(ftn[idx].get_fitness() * 100)
-                        + "% fit controller: " + candidate + "\n");
+            final double val = ftn.get_fitness() * 100;
+            writer.write("Controller's fitness: " + formatter.format(val) + "%\n");
+
+            //Dump the control functions per dof
+            for (int idx = 0; idx < ind_str.size(); ++idx) {
+                final String dof_funct = ind_str.get(idx);
+                LOGGER.log(Level.FINE, "The shortest one is {0}", dof_funct);
+                writer.write("Dof #" + idx + ": " + dof_funct + "\n");
                 LOGGER.log(Level.FINE, "The individual is stored");
                 writer.flush();
             }
@@ -487,27 +459,27 @@ public class FXMLController implements Initializable {
             protected Void call() throws Exception {
                 try {
                     //Obtain the best fit individuals
-                    final List<Pair<Individual, String>> inds = new ArrayList<>();
-                    get_best_fint_inds(inds);
+                    final Pair<Individual, List<String>> ind_data = get_best_fit_ind();
 
                     //Get the symbolic controller file name without extension
                     final String bad_file_name = ctrl_file_name.replaceAll(
                             "\\." + SYM_FILE_NAME_EXT, "");
+
                     //Store the unsafe points as a BDD.
-                    final ScotsFacade facade = (ScotsFacade) FitnessManager.inst();
                     m_log.info("Started storing controller's unfit points into: " + bad_file_name);
-                    final Fitness[] ftn = facade.store_unfit_points(bad_file_name, inds);
+                    final ScotsFacade facade = (ScotsFacade) FitnessManager.inst();
+                    final Fitness fitness = facade.store_unfit_points(bad_file_name, ind_data.m_first);
                     m_log.info("Finished storing controller's unfit points into: " + bad_file_name);
 
                     //Store the symbolic controllers into files
-                    store_symbolic_controllers(ctrl_file_name, inds, ftn);
+                    store_symbolic_controllers(ctrl_file_name, ind_data.m_second, fitness);
 
                     //Show the end info and enable the buttons
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
                             //Show the resulting info
-                            show_resulting_info(ftn);
+                            show_resulting_info(fitness);
 
                             //Enable the controls
                             enable_ctrls_safe(false);
@@ -550,7 +522,7 @@ public class FXMLController implements Initializable {
                         public void run() {
                             m_ctrl_name_txt.setText(full_file_name);
                             m_dims_cmb.getItems().clear();
-                            m_dof_tab.getTabs().clear();
+                            m_grid_pane.getChildren().clear();
                             m_req_ftn_pane.getChildren().clear();
                             m_req_ftn_pane.getChildren().add(m_req_ftn_crt);
                             m_ex_ftn_pane.getChildren().clear();
@@ -650,11 +622,11 @@ public class FXMLController implements Initializable {
      *
      * @param is_start true if the process is starting
      * @param is_ok true if the process is finishing and it went without errors
-     * @param is_stop_mgrs true if the process managers are to be stopped
+     * @param is_stop true if the process manager is to be stopped
      */
     private void enable_ctrls_run(
             final boolean is_start, final boolean is_ok,
-            final boolean is_stop_mgrs) {
+            final boolean is_stop) {
         m_load_btn.setDisable(is_start);
         m_run_btn.setDisable(is_start);
         m_stop_btn.setDisable(!is_start);
@@ -662,32 +634,16 @@ public class FXMLController implements Initializable {
 
         enable_non_btn_ctrls(is_start);
 
-        if (!is_start && is_stop_mgrs) {
-            m_log.info("Started stopping the process managers for all dofs.");
-            m_managers.forEach((manager) -> {
-                manager.stop(true);
-            });
-            m_log.info("Finished stopping the process managers for all dofs.");
+        if (!is_start && is_stop && m_manager.is_active()) {
+            m_log.info("Started stopping the process manager.");
+            m_manager.stop(true);
+            m_log.info("Finished stopping the process manager.");
         }
     }
 
     @FXML
     public void stopRunning(ActionEvent event) {
         enable_ctrls_run(false, true, true);
-    }
-
-    /**
-     * Counts the number of finished dofs identified by population managers
-     *
-     * @param mgr the process manager
-     * @return true if the process manager was active, otherwise false
-     */
-    private synchronized boolean count_finished_dofs(final ProcessManager mgr) {
-        final boolean result = m_managers_act.remove(mgr);
-        if (m_managers_act.isEmpty()) {
-            enable_ctrls_run(false, true, false);
-        }
-        return result;
     }
 
     /**
@@ -704,7 +660,7 @@ public class FXMLController implements Initializable {
         final Object value = m_dims_cmb.getValue();
         if (value != null) {
             //Set up the parameters and the grammar
-            m_main_prog_ind.setVisible(true);
+            m_prog_ind.setVisible(true);
             m_stop_btn.setDisable(true);
             try {
                 //Get the parameter values
@@ -742,7 +698,7 @@ public class FXMLController implements Initializable {
                 grammar = Grammar.create_grammar(g_cfg);
                 m_log.info("Finished creating the new grammar.");
             } finally {
-                m_main_prog_ind.setVisible(false);
+                m_prog_ind.setVisible(false);
                 m_stop_btn.setDisable(false);
             }
         } else {
@@ -768,7 +724,9 @@ public class FXMLController implements Initializable {
         final int ch_sp_x = Integer.parseInt(m_ch_sp_x_txt.getText());
         final int ch_sp_y = Integer.parseInt(m_ch_sp_y_txt.getText());
         final int num_workers = Integer.parseInt(m_workers_dof_txt.getText());
-        final long max_mutations = Long.parseLong(m_max_mut_txt.getText());
+        final long max_mutations
+                = (m_is_iter_cbx.isSelected()
+                ? Long.MAX_VALUE : Long.parseLong(m_max_mut_txt.getText()));
         final double init_pop_mult = m_init_pop_sld.getValue();
         final boolean is_stop_found = m_is_stop_cbx.isSelected();
         final SelectionType sel_type = (SelectionType) m_tour_cmb.getValue();
@@ -792,60 +750,44 @@ public class FXMLController implements Initializable {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                m_managers.clear();
-                m_dof_tab.getTabs().clear();
-                m_progress_box.getChildren().clear();
-                IntStream.range(0, (m_num_dofs - num_ss_dofs)).forEachOrdered(mgr_id -> {
-                    m_log.info("Starting symbolic regression process manager for dof: " + mgr_id);
+                m_grid_pane.getChildren().clear();
+                final int num_is_dofs = m_num_dofs - num_ss_dofs;
+                m_log.info("Preparing to start symbolic regression");
 
-                    //Instantiaet the visualizer
-                    final String dof_title = "Dof #" + mgr_id;
-                    Tab dofTab = new Tab(dof_title);
-                    GridView grid_pane = new GridView(size_x, size_y);
-                    FitnessChart req_ftn_chart = new FitnessChart(m_req_ftn_pane, dof_title + "(Complex)");
-                    FitnessChart ex_ftn_chart = new FitnessChart(m_ex_ftn_pane, dof_title + "(Exact)");
-                    final DofVisualizer visualizer = new DofVisualizer(
-                            size_x, size_y, m_progress_box, dof_title,
-                            m_main_prog_ind.getPrefHeight(), m_main_prog_ind.getPrefHeight(),
-                            grid_pane, req_ftn_chart, ex_ftn_chart) {
-                        @Override
-                        public synchronized void set(final Individual ind) {
-                            //Call the super class method first
-                            super.set(ind);
-                            //Check if we need to stop
-                            if (is_stop_found && (ind.get_fitness().is_one())) {
-                                final ProcessManager mgr = m_managers.get(mgr_id);
-                                if (count_finished_dofs(mgr)) {
-                                    //Stop the process manager as the 100% fit individual is found
-                                    m_log.info("The 100% fit individual is found for dof: " + mgr_id);
-                                    mgr.stop(true);
-                                    m_log.info("The process manager for dof " + mgr_id + " is stopped: ");
-                                }
-                            }
+                //Instantiaet the visualizer
+                GridView grid_view = new GridView(size_x, size_y);
+                final PMVisualizer visualizer = new PMVisualizer(
+                        size_x, size_y, m_prog_ind, grid_view,
+                        m_ex_ftn_pane, m_req_ftn_pane) {
+                    @Override
+                    public synchronized void set(final Individual ind) {
+                        //Call the super class method first
+                        super.set(ind);
+                        //Check if we need to stop
+                        if (ind.get_fitness().is_one() && is_stop_found) {
+                            m_log.info("The 100% fit individual is found, stopping as requested!");
+                            enable_ctrls_run(false, true, false);
                         }
-                    };
+                    }
+                };
 
-                    //Instantiate the process manager
-                    final ProcessManagerConfig config = new ProcessManagerConfig(
-                            mgr_id, init_pop_mult, num_workers, max_mutations,
-                            1, size_x, size_y, ch_sp_x, ch_sp_y, sel_type,
-                            is_child_limit, is_avoid_equal, min_ch_cnt, max_ch_cnt,
-                            visualizer, (mgr) -> {
-                                count_finished_dofs(mgr);
-                            });
-                    final ProcessManager manager = new ProcessManager(config);
-                    m_managers.add(manager);
-                    m_managers_act.add(manager);
-                    dofTab.setContent(grid_pane);
-                    dofTab.setOnSelectionChanged(ev -> {
-                        visualizer.set_active(dofTab.isSelected());
-                    });
-                    m_dof_tab.getTabs().add(dofTab);
+                //Instantiate the process manager config
+                final ProcessManagerConfig config = new ProcessManagerConfig(
+                        0, init_pop_mult, num_workers, max_mutations,
+                        num_is_dofs, size_x, size_y, ch_sp_x, ch_sp_y, sel_type,
+                        is_child_limit, is_avoid_equal, min_ch_cnt, max_ch_cnt,
+                        visualizer, (mgr) -> {
+                            enable_ctrls_run(false, true, mgr.is_active());
+                        });
 
-                    //Start the process manager
-                    manager.start();
-                    m_log.info("The symbolic regression for dof " + mgr_id + " is started.");
-                });
+                //Instantiate the process manager
+                m_manager = new ProcessManager(config);
+                visualizer.set_active(true);
+                m_grid_pane.getChildren().add(grid_view);
+
+                //Start the process manager
+                m_manager.start();
+                m_log.info("The symbolic regression is started.");
             }
         });
     }
@@ -909,38 +851,38 @@ public class FXMLController implements Initializable {
     private void load_properties() {
         //Register UI components with saved values
         m_log.info("Started registering UI parameter components.");
-        m_prop_mgr.register(m_max_pop_size_txt);
-        m_prop_mgr.register(m_max_mut_txt);
-        m_prop_mgr.register(m_max_tree_size_txt);
-        m_prop_mgr.register(m_workers_dof_txt);
-        m_prop_mgr.register(m_ftn_scale_txt);
-        m_prop_mgr.register(m_ch_sp_x_txt);
-        m_prop_mgr.register(m_ch_sp_y_txt);
-        m_prop_mgr.register(m_ch_vs_rep_sld);
-        m_prop_mgr.register(m_tm_vs_tnm_sld);
-        m_prop_mgr.register(m_init_pop_sld);
-        m_prop_mgr.register(m_grammar_txt);
-        m_prop_mgr.register(m_min_ngf_txt);
-        m_prop_mgr.register(m_max_ngf_txt);
-        m_prop_mgr.register(m_attract_txt);
-        m_prop_mgr.register(m_tour_cmb);
-        m_prop_mgr.register(m_fit_cmb);
-        m_prop_mgr.register(m_is_stop_cbx);
-        m_prop_mgr.register(m_is_iter_cbx);
-        m_prop_mgr.register(m_is_prop_pn_cbx);
-        m_prop_mgr.register(m_is_scale_cbx);
-        m_prop_mgr.register(m_is_compl_cbx);
-        m_prop_mgr.register(m_is_child_lim_cbx);
-        m_prop_mgr.register(m_is_avoid_equal_cbx);
-        m_prop_mgr.register(m_is_opt_on_save_cbx);
-        m_prop_mgr.register(m_min_ch_cnt_txt);
-        m_prop_mgr.register(m_max_ch_cnt_txt);
-        m_prop_mgr.register(m_max_gd_txt);
-        m_prop_mgr.register(m_mc_fitness_cbx);
-        m_prop_mgr.register(m_rss_ftn_cbx);
-        m_prop_mgr.register(m_rel_sam_size_txt);
-        m_prop_mgr.register(m_min_bis_size_txt);
-        m_prop_mgr.register(m_rss_bis_ratio_sld);
+        m_prop_mgr.register("m_max_pop_size_txt", m_max_pop_size_txt);
+        m_prop_mgr.register("m_max_mut_txt", m_max_mut_txt);
+        m_prop_mgr.register("m_max_tree_size_txt", m_max_tree_size_txt);
+        m_prop_mgr.register("m_workers_dof_txt", m_workers_dof_txt);
+        m_prop_mgr.register("m_ftn_scale_txt", m_ftn_scale_txt);
+        m_prop_mgr.register("m_ch_sp_x_txt", m_ch_sp_x_txt);
+        m_prop_mgr.register("m_ch_sp_y_txt", m_ch_sp_y_txt);
+        m_prop_mgr.register("m_ch_vs_rep_sld", m_ch_vs_rep_sld);
+        m_prop_mgr.register("m_tm_vs_tnm_sld", m_tm_vs_tnm_sld);
+        m_prop_mgr.register("m_init_pop_sld", m_init_pop_sld);
+        m_prop_mgr.register("m_grammar_txt", m_grammar_txt);
+        m_prop_mgr.register("m_min_ngf_txt", m_min_ngf_txt);
+        m_prop_mgr.register("m_max_ngf_txt", m_max_ngf_txt);
+        m_prop_mgr.register("m_attract_txt", m_attract_txt);
+        m_prop_mgr.register("m_tour_cmb", m_tour_cmb);
+        m_prop_mgr.register("m_fit_cmb", m_fit_cmb);
+        m_prop_mgr.register("m_is_stop_cbx", m_is_stop_cbx);
+        m_prop_mgr.register("m_is_iter_cbx", m_is_iter_cbx);
+        m_prop_mgr.register("m_is_prop_pn_cbx", m_is_prop_pn_cbx);
+        m_prop_mgr.register("m_is_scale_cbx", m_is_scale_cbx);
+        m_prop_mgr.register("m_is_compl_cbx", m_is_compl_cbx);
+        m_prop_mgr.register("m_is_child_lim_cbx", m_is_child_lim_cbx);
+        m_prop_mgr.register("m_is_avoid_equal_cbx", m_is_avoid_equal_cbx);
+        m_prop_mgr.register("m_is_opt_on_save_cbx", m_is_opt_on_save_cbx);
+        m_prop_mgr.register("m_min_ch_cnt_txt", m_min_ch_cnt_txt);
+        m_prop_mgr.register("m_max_ch_cnt_txt", m_max_ch_cnt_txt);
+        m_prop_mgr.register("m_max_gd_txt", m_max_gd_txt);
+        m_prop_mgr.register("m_mc_fitness_cbx", m_mc_fitness_cbx);
+        m_prop_mgr.register("m_rss_ftn_cbx", m_rss_ftn_cbx);
+        m_prop_mgr.register("m_rel_sam_size_txt", m_rel_sam_size_txt);
+        m_prop_mgr.register("m_min_bis_size_txt", m_min_bis_size_txt);
+        m_prop_mgr.register("m_rss_bis_ratio_sld", m_rss_bis_ratio_sld);
         m_log.info("Finished registering UI parameter components.");
 
         //Load properties
@@ -951,9 +893,8 @@ public class FXMLController implements Initializable {
     }
 
     private void set_up_progress_bars() {
-        m_main_prog_ind.setProgress(-1.0);
-        m_main_prog_ind.setVisible(false);
-        m_progress_box.setAlignment(Pos.CENTER_LEFT);
+        m_prog_ind.setProgress(-1.0);
+        m_prog_ind.setVisible(false);
     }
 
     private void set_up_tournament_type() {
@@ -991,14 +932,7 @@ public class FXMLController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable,
                     Boolean oldValue, Boolean newValue) {
-                if (m_is_iter_cbx.isSelected()) {
-                    m_max_mut_txt.setDisable(true);
-                    m_max_mut_val = m_max_mut_txt.getText();
-                    m_max_mut_txt.setText(Long.toString(Long.MAX_VALUE));
-                } else {
-                    m_max_mut_txt.setDisable(false);
-                    m_max_mut_txt.setText(m_max_mut_val);
-                }
+                m_max_mut_txt.setDisable(m_is_iter_cbx.isSelected());
             }
         });
     }
@@ -1115,7 +1049,6 @@ public class FXMLController implements Initializable {
         set_up_progress_bars();
         set_up_tournament_type();
         set_up_fitness_type();
-        set_up_max_num_iter();
         set_up_max_num_iter();
         set_up_child_limits();
         set_up_complicated_fitness();
