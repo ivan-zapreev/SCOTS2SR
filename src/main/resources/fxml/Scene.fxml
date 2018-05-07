@@ -21,7 +21,7 @@
                         <Button fx:id="m_stop_btn" disable="true" mnemonicParsing="false" onAction="#stopRunning" text="Stop" />
                         <Button fx:id="m_save_btn" disable="true" mnemonicParsing="false" onAction="#saveFileSelection" text="Save" />
                         <Separator orientation="VERTICAL" prefHeight="0.0" prefWidth="3.0" />
-                  <AnchorPane prefHeight="27.0" prefWidth="357.0">
+                  <AnchorPane prefHeight="27.0" prefWidth="112.0">
                      <children>
                         <ProgressBar fx:id="m_prog_ind" prefHeight="27.0" prefWidth="357.0" progress="0.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                      </children>
@@ -101,14 +101,14 @@
                                                                   <Insets />
                                                                </GridPane.margin>
                                                             </ComboBox>
-                                                                      <Label text="Dof grid size:" GridPane.rowIndex="4" />
-                                                                      <TextField fx:id="m_max_pop_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Approximate max. population size" text="30x30" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                                      <Label text="2D grid size (X*Y):" GridPane.rowIndex="4" />
+                                                                      <TextField fx:id="m_max_pop_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Approximate max. population size" text="30*30" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                                                             <CheckBox fx:id="m_is_iter_cbx" mnemonicParsing="false" selected="true" text="Endless iterations" GridPane.rowIndex="6">
                                                                <GridPane.margin>
                                                                   <Insets />
                                                                </GridPane.margin>
                                                             </CheckBox>
-                                                                      <Label text="Reproductions per Dof:" GridPane.rowIndex="7" />
+                                                                      <Label text="Reproductions:" GridPane.rowIndex="7" />
                                                                       <TextField fx:id="m_max_mut_txt" disable="true" prefHeight="0.0" prefWidth="148.0" promptText="Max. number of muttions" GridPane.columnIndex="1" GridPane.rowIndex="7">
                                                                <GridPane.margin>
                                                                   <Insets />
@@ -116,7 +116,7 @@
                                                             </TextField>
                                                                       <Label text="Max. Tree size:" GridPane.rowIndex="10" />
                                                                       <TextField fx:id="m_max_tree_size_txt" prefHeight="0.0" prefWidth="148.0" promptText="Maximum tree depth" text="300" GridPane.columnIndex="1" GridPane.rowIndex="10" />
-                                                            <Label text="Workers per Dof:" GridPane.rowIndex="5" />
+                                                            <Label text="Number of threads:" GridPane.rowIndex="5" />
                                                             <TextField fx:id="m_workers_dof_txt" prefHeight="0.0" prefWidth="148.0" promptText="Number of workers per GP dof" text="20" GridPane.columnIndex="1" GridPane.rowIndex="5" />
                                                             <CheckBox fx:id="m_is_stop_cbx" mnemonicParsing="false" selected="true" text="Stop if found" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                                                <GridPane.margin>
@@ -128,7 +128,7 @@
                                                                   <Insets />
                                                                </GridPane.margin>
                                                             </CheckBox>
-                                                            <Label text="Max grammar depth" GridPane.rowIndex="11" />
+                                                            <Label text="Max. grammar depth" GridPane.rowIndex="11" />
                                                             <TextField fx:id="m_max_gd_txt" promptText="The maximum grammar depth for the fixed point" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="11" />
                                                             <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" GridPane.rowIndex="9" />
                                                             <Label text="Tournament type" GridPane.rowIndex="19" />
@@ -164,9 +164,9 @@
                                                                   <Insets />
                                                                </opaqueInsets>
                                                             </Slider>
-                                                            <Label text="Min node grow factor" GridPane.rowIndex="27" />
+                                                            <Label text="Min. node grow factor" GridPane.rowIndex="27" />
                                                             <TextField fx:id="m_min_ngf_txt" promptText="The initial population multiple" text="0.5" GridPane.columnIndex="1" GridPane.rowIndex="27" />
-                                                            <Label text="Max node grow factor" GridPane.rowIndex="28" />
+                                                            <Label text="Max. node grow factor" GridPane.rowIndex="28" />
                                                             <TextField fx:id="m_max_ngf_txt" promptText="The initial population multiple" text="2.0" GridPane.columnIndex="1" GridPane.rowIndex="28" />
                                                             <Label text="Term. vs non-term." GridPane.rowIndex="29" />
                                                             <Slider fx:id="m_tm_vs_tnm_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="29" />
@@ -180,9 +180,9 @@
                                                                   <Insets />
                                                                </GridPane.margin>
                                                             </CheckBox>
-                                                            <Label text="Min child count" GridPane.rowIndex="32" />
+                                                            <Label text="Min. child count" GridPane.rowIndex="32" />
                                                             <TextField fx:id="m_min_ch_cnt_txt" disable="true" promptText="The minimum number of children" text="100" GridPane.columnIndex="1" GridPane.rowIndex="32" />
-                                                            <Label text="Max child count" GridPane.rowIndex="33" />
+                                                            <Label text="Max. child count" GridPane.rowIndex="33" />
                                                             <TextField fx:id="m_max_ch_cnt_txt" disable="true" promptText="The maximum number of children" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="33" />
                                                             <Label text="Child spread X:  " GridPane.rowIndex="34" />
                                                             <TextField fx:id="m_ch_sp_x_txt" prefHeight="27.0" prefWidth="79.0" promptText="The +/- cells in X relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="34" />

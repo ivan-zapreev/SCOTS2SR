@@ -354,10 +354,10 @@ public class FXMLController implements Initializable {
 
                 //Optimize the individual
                 if (m_is_opt_on_save_cbx.isSelected()) {
-                    m_log.info("Started optimizing individual size for: "
+                    m_log.info("Started optimizing size for individual: "
                             + (ind_idx + 1) + "/" + inds.size());
                     ind.optimize();
-                    m_log.info("Finished optimizing individual size for: "
+                    m_log.info("Finished optimizing size for individual: "
                             + (ind_idx + 1) + "/" + inds.size());
                 }
 
@@ -716,7 +716,7 @@ public class FXMLController implements Initializable {
      */
     private void start_process(final Grammar grammar) {
         //Extract the data from the interface controls
-        final String sizes[] = m_max_pop_size_txt.getText().split("x");
+        final String sizes[] = m_max_pop_size_txt.getText().split("*");
         final Object value = m_dims_cmb.getValue();
         final int num_ss_dofs = Integer.parseInt(value.toString());
         final int size_x = Integer.parseInt(sizes[0]);

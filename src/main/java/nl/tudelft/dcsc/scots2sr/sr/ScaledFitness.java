@@ -21,6 +21,8 @@
  */
 package nl.tudelft.dcsc.scots2sr.sr;
 
+import java.util.Arrays;
+
 /**
  *
  * Represents the fitness with scaling
@@ -33,75 +35,70 @@ public class ScaledFitness extends ExtendedFitness {
     private static final double NO_SHIFT = 0.0;
 
     //Stores the scale used, 1.0 if none
-    private final double m_scale;
+    private final double m_scales[];
     //Stores the shift used, 0.0 if none
-    private final double m_shift;
+    private final double m_shifts[];
 
     /**
      * The constructor.
      *
      * @param ex_ftn the exact fitness
      * @param req_ftn the requested fitness
-     * @param scale the scaling factor
-     * @param shift the shifting factor
+     * @param scales the vector of scaling factors per input dof
+     * @param shifts the vector of shifting factor per input dof
      */
     public ScaledFitness(final double ex_ftn, final double req_ftn,
-            final double scale, final double shift) {
+            final double scales[], final double shifts[]) {
         super(ex_ftn, req_ftn);
-        m_scale = scale;
-        m_shift = shift;
+        m_scales = scales;
+        m_shifts = shifts;
     }
-
-    /**
-     * The constructor, assumes no scaling and shifting.
-     *
-     * @param ex_ftn the exact fitness
-     * @param req_ftn the requested fitness
-     */
-    public ScaledFitness(final double ex_ftn, final double req_ftn) {
-        this(ex_ftn, req_ftn, NO_SCALE, NO_SHIFT);
-    }
-
+    
     /**
      * Get the scaling factor, if any
      *
-     * @return the scaling factor, or NO_SCALE if none
+     * @param idx the input dof index (starts from 0)
+     * @return the scaling factors, or NO_SCALE if none
      */
-    public double get_scale() {
-        return m_scale;
+    public double get_scale(final int idx) {
+        return m_scales[idx];
     }
 
     /**
      * Get the shift factor, if any
      *
-     * @return the shifting factor, or NO_SHIFT if none
+     * @param idx the input dof index (starts from 0)
+     * @return the shifting factors, or NO_SHIFT if none
      */
-    public double get_shift() {
-        return m_shift;
+    public double get_shift(final int idx) {
+        return m_shifts[idx];
     }
 
     /**
      * Checks if scaling is set
      *
+     * @param idx the input dof index (starts from 0)
      * @return true if scaling is set
      */
-    public boolean is_scale() {
-        return (m_scale != NO_SCALE);
+    public boolean is_scale(final int idx) {
+        return (m_scales[idx] != NO_SCALE);
     }
 
     /**
      * Checks if shifting is set
      *
+     * @param idx the input dof index (starts from 0)
      * @return true if shifting is set
      */
-    public boolean is_shift() {
-        return (m_shift != NO_SHIFT);
+    public boolean is_shift(final int idx) {
+        return (m_shifts[idx] != NO_SHIFT);
     }
 
     @Override
     public String toString() {
         return "[" + super.toString() + ", sc: "
-                + m_scale + ", sh: " + m_shift + "]";
+                + Arrays.toString(m_scales) + ", sh: "
+                + Arrays.toString(m_shifts) + "]";
     }
 
 }

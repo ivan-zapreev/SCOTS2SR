@@ -106,30 +106,30 @@ public abstract class FitnessTracker implements GridObserver {
     @Override
     public synchronized void set(final Individual new_ind) {
         //First re-work the scale and shift from the fitness into the individual.
-        new_ind.update_exprs((Expression expr, final int idx) -> {
-            //Add the shifting and scaling if any
-            final Fitness ftn = new_ind.get_fitness();
-            if (ftn instanceof ScaledFitness) {
-                final ScaledFitness sftn = (ScaledFitness) ftn;
+        final Fitness ftn = new_ind.get_fitness();
+        if (ftn instanceof ScaledFitness) {
+            final ScaledFitness sftn = (ScaledFitness) ftn;
+            new_ind.update_exprs((Expression expr, final int idx) -> {
+                //Add the shifting and scaling if any
                 //If there is a scaling factro then use it
-                if (sftn.is_scale()) {
-                    final double scale = sftn.get_scale();
+                if (sftn.is_scale(idx)) {
+                    final double scale = sftn.get_scale(idx);
                     expr = FunctExpr.make_binary(Grammar.NUM_ENTRY_TYPE_STR,
                             expr, Grammar.NUM_ENTRY_TYPE_STR, "*",
                             DConstExpr.make_const(Grammar.NUM_ENTRY_TYPE_STR, scale),
                             DConstExpr.ENTRY_CDOUBLE_STR);
                 }
                 //If there is shifting then use it
-                if (sftn.is_shift()) {
-                    final double shift = sftn.get_shift();
+                if (sftn.is_shift(idx)) {
+                    final double shift = sftn.get_shift(idx);
                     expr = FunctExpr.make_binary(Grammar.NUM_ENTRY_TYPE_STR,
                             expr, Grammar.NUM_ENTRY_TYPE_STR, "+",
                             DConstExpr.make_const(Grammar.NUM_ENTRY_TYPE_STR, shift),
                             DConstExpr.ENTRY_CDOUBLE_STR);
                 }
-            }
-            return expr;
-        });
+                return expr;
+            });
+        }
 
         final Individual old_ind = m_pop_grid[new_ind.get_pos_x()][new_ind.get_pos_y()];
         LOGGER.log(Level.FINE, "Settling {0} in place of {1}", new Object[]{new_ind, old_ind});

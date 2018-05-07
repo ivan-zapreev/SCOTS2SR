@@ -107,9 +107,9 @@ public class ScotsFacade extends FitnessComputerClass {
             m_load = m_class.getMethod("load", String.class);
             m_get_ss_size = m_class.getMethod("get_state_space_size", int.class);
             m_configure = m_class.getMethod("configure", FConfig.class);
-            m_compute_fitness = m_class.getMethod("compute_fitness", String.class, int.class);
+            m_compute_fitness = m_class.getMethod("compute_fitness", String.class);
             m_start_unfit_export = m_class.getMethod("start_unfit_export");
-            m_export_unfit_points = m_class.getMethod("export_unfit_points", String.class, int.class);
+            m_export_unfit_points = m_class.getMethod("export_unfit_points", String.class);
             m_finish_unfit_export = m_class.getMethod("finish_unfit_export", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException ex) {
             LOGGER.log(Level.SEVERE, "Failed when loading and instantiating "
@@ -171,7 +171,7 @@ public class ScotsFacade extends FitnessComputerClass {
             throws IllegalStateException, IllegalArgumentException,
             ClassNotFoundException, IllegalAccessException,
             InvocationTargetException {
-        return (Fitness) m_compute_fitness.invoke(null, class_name, mgr_id);
+        return (Fitness) m_compute_fitness.invoke(null, class_name);
     }
 
     /**
@@ -199,7 +199,8 @@ public class ScotsFacade extends FitnessComputerClass {
                     throws IllegalStateException, IllegalArgumentException,
                     ClassNotFoundException, IllegalAccessException,
                     InvocationTargetException {
-                final Double fitness = (Double) m_export_unfit_points.invoke(null, class_name, mgr_id);
+                final Double fitness
+                        = (Double) m_export_unfit_points.invoke(null, class_name);
                 return new Fitness(fitness);
             }
         }.compute_fitness(ind.get_mgr_id(), ind.get_expr_array());
