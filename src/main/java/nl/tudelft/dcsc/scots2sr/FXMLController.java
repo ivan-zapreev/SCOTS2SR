@@ -622,7 +622,42 @@ public class FXMLController implements Initializable {
 
     //Stores the stop alert, or null
     private final Object stop_alert_synch = new Object();
-    private Alert stop_alert = null;
+    private final Alert stop_alert = new Alert(AlertType.WARNING,
+            "Symbolic Regression is being stopped.\n"
+            + "This may take up to " + (2 * TERM_TIME_OUT_SEC)
+            + " seconds.\n" + "Please wait!");
+
+    /**
+     * Stops the process manager if it is active.
+     */
+    private void stop_process_manager() {
+        if (m_manager.is_active()) {
+            m_log.info("Started stopping the process manager.");
+            //Show the alert
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    //Create and show the alert
+                    synchronized (stop_alert_synch) {
+                        stop_alert.show();
+                    }
+                }
+            });
+
+            //Request the manager to stop
+            m_manager.stop(TERM_TIME_OUT_SEC);
+
+            //Close the alert if shown
+            Platform.runLater(() -> {
+                synchronized (stop_alert_synch) {
+                    if (stop_alert.isShowing()) {
+                        stop_alert.close();
+                    }
+                }
+            });
+            m_log.info("Finished stopping the process manager.");
+        }
+    }
 
     /**
      * Disables the interface when started running Symbolic Regression
@@ -639,37 +674,9 @@ public class FXMLController implements Initializable {
             @Override
             protected Void call() throws Exception {
                 //Stop the manager first
-                m_log.info("Started stopping the process manager.");
-                if (!is_start && is_stop && m_manager.is_active()) {
-                    //Show the alert
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            //Create and show the alert
-                            synchronized (stop_alert_synch) {
-                                if (stop_alert == null) {
-                                    stop_alert = new Alert(AlertType.WARNING,
-                                            "Symbolic Regression is being stopped.\n"
-                                            + "This may take up to " + (2 * TERM_TIME_OUT_SEC)
-                                            + " seconds.\n" + "Please wait!");
-                                    stop_alert.show();
-                                }
-                            }
-                        }
-                    });
-
-                    //Request the manager to stop
-                    m_manager.stop(TERM_TIME_OUT_SEC);
-
-                    //Close the alert if shown
-                    synchronized (stop_alert_synch) {
-                        if ((stop_alert != null) && stop_alert.isShowing()) {
-                            stop_alert.close();
-                            stop_alert = null;
-                        }
-                    }
+                if (!is_start && is_stop) {
+                    stop_process_manager();
                 }
-                m_log.info("Finished stopping the process manager.");
 
                 m_load_btn.setDisable(is_start);
                 m_run_btn.setDisable(is_start);
