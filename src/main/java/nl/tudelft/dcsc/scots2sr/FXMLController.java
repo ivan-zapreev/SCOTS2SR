@@ -98,6 +98,8 @@ public class FXMLController implements Initializable {
     private static final String SYM_FILE_NAME_EXT = "sym";
     //Stores the symbolic controller file name template
     private static final String SYM_FILE_TEMPL = "*." + SYM_FILE_NAME_EXT;
+    //The termination time out in seconds
+    private static final long TERM_TIME_OUT_SEC = 60;
 
     //Stores the reference to the logger
     private static final Logger LOGGER = Logger.getLogger(FXMLController.class.getName());
@@ -225,13 +227,14 @@ public class FXMLController implements Initializable {
      */
     public void finish() {
         //Stop the processes
-        m_executor.shutdownNow();
         enable_ctrls_load(false, true);
         enable_ctrls_run(false, true, true);
         //Store properties,
         m_prop_mgr.save_properties();
         //Close the handlers
         stop_logging();
+        //Stop the executor
+        m_executor.shutdownNow();
     }
 
     private void enable_ctrls_safe(final boolean is_start) {
@@ -617,6 +620,10 @@ public class FXMLController implements Initializable {
         m_ch_sp_y_txt.setDisable(is_dis);
     }
 
+    //Stores the stop alert, or null
+    private final Object stop_alert_synch = new Object();
+    private Alert stop_alert = null;
+
     /**
      * Disables the interface when started running Symbolic Regression
      *
@@ -625,20 +632,56 @@ public class FXMLController implements Initializable {
      * @param is_stop true if the process manager is to be stopped
      */
     private void enable_ctrls_run(
-            final boolean is_start, final boolean is_ok,
+            final boolean is_start,
+            final boolean is_ok,
             final boolean is_stop) {
-        m_load_btn.setDisable(is_start);
-        m_run_btn.setDisable(is_start);
-        m_stop_btn.setDisable(!is_start);
-        m_save_btn.setDisable(is_start || !is_ok);
+        Task<Void> task = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                //Stop the manager first
+                m_log.info("Started stopping the process manager.");
+                if (!is_start && is_stop && m_manager.is_active()) {
+                    //Show the alert
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Create and show the alert
+                            synchronized (stop_alert_synch) {
+                                if (stop_alert == null) {
+                                    stop_alert = new Alert(AlertType.WARNING,
+                                            "Symbolic Regression is being stopped.\n"
+                                            + "This may take up to " + (2 * TERM_TIME_OUT_SEC)
+                                            + " seconds.\n" + "Please wait!");
+                                    stop_alert.show();
+                                }
+                            }
+                        }
+                    });
 
-        enable_non_btn_ctrls(is_start);
+                    //Request the manager to stop
+                    m_manager.stop(TERM_TIME_OUT_SEC);
 
-        if (!is_start && is_stop && m_manager.is_active()) {
-            m_log.info("Started stopping the process manager.");
-            m_manager.stop(true);
-            m_log.info("Finished stopping the process manager.");
-        }
+                    //Close the alert if shown
+                    synchronized (stop_alert_synch) {
+                        if ((stop_alert != null) && stop_alert.isShowing()) {
+                            stop_alert.close();
+                            stop_alert = null;
+                        }
+                    }
+                }
+                m_log.info("Finished stopping the process manager.");
+
+                m_load_btn.setDisable(is_start);
+                m_run_btn.setDisable(is_start);
+                m_stop_btn.setDisable(!is_start);
+                m_save_btn.setDisable(is_start || !is_ok);
+
+                enable_non_btn_ctrls(is_start);
+
+                return null;
+            }
+        };
+        m_executor.submit(task);
     }
 
     @FXML
@@ -772,7 +815,7 @@ public class FXMLController implements Initializable {
                 };
 
                 m_log.info("Instantiating Process Manager for " + num_is_dofs + " dofs.");
-                
+
                 //Instantiate the process manager config
                 final ProcessManagerConfig config = new ProcessManagerConfig(
                         0, init_pop_mult, num_workers, max_mutations,
