@@ -738,10 +738,11 @@ public class FXMLController implements Initializable {
         //Prepare grammars
         m_log.info("Started preparing grammar for symbolic regression.");
         Grammar.clear_grammars();
-        IntStream.range(0, (m_num_dofs - num_ss_dofs)).forEachOrdered(mgr_id -> {
+        final int mgr_id = 0;
+        IntStream.range(0, (m_num_dofs - num_ss_dofs)).forEachOrdered(dof_idx -> {
             //Register the grammar for the given manager, the dof index 
             //is always 0 as there is on input signal dimension per manager
-            Grammar.register_grammar(mgr_id, 0, grammar);
+            Grammar.register_grammar(mgr_id, dof_idx, grammar);
         });
         Grammar.prepare_grammars();
         m_log.info("Finished preparing grammar for symbolic regression.");
