@@ -716,7 +716,7 @@ public class FXMLController implements Initializable {
      */
     private void start_process(final Grammar grammar) {
         //Extract the data from the interface controls
-        final String sizes[] = m_max_pop_size_txt.getText().split("*");
+        final String sizes[] = m_max_pop_size_txt.getText().split("\\*");
         final Object value = m_dims_cmb.getValue();
         final int num_ss_dofs = Integer.parseInt(value.toString());
         final int size_x = Integer.parseInt(sizes[0]);
