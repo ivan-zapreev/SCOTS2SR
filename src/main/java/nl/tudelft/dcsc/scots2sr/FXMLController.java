@@ -197,6 +197,8 @@ public class FXMLController implements Initializable {
     @FXML
     private TextField m_act_sam_size_txt;
     @FXML
+    private TextField m_re_sample_attempts_txt;
+    @FXML
     private TextField m_min_bis_size_txt;
     @FXML
     private Slider m_rss_bis_ratio_sld;
@@ -557,7 +559,7 @@ public class FXMLController implements Initializable {
     private void enable_monte_carlo_ctrls(final boolean is_dis) {
         m_mc_fitness_cbx.setDisable(is_dis);
         if (m_mc_fitness_cbx.isSelected()) {
-            m_rel_sam_size_txt.setDisable(is_dis);
+            m_act_sam_size_txt.setDisable(is_dis);
             m_rss_ftn_cbx.setDisable(is_dis);
             if (m_rss_ftn_cbx.isSelected()) {
                 m_min_bis_size_txt.setDisable(is_dis);
@@ -723,6 +725,7 @@ public class FXMLController implements Initializable {
                 final boolean is_monte_carlo = m_mc_fitness_cbx.isSelected();
                 final boolean is_rec_strat_sample = m_rss_ftn_cbx.isSelected();
                 final long sample_size = Long.parseLong(m_act_sam_size_txt.getText());
+                final int re_sample_attempts = Integer.parseInt(m_re_sample_attempts_txt.getText());
                 final long min_bisect_size = Long.parseLong(m_min_bis_size_txt.getText());
                 final double sample_bisect_ratio = m_rss_bis_ratio_sld.getValue();
 
@@ -730,7 +733,8 @@ public class FXMLController implements Initializable {
                 m_log.info("Started configuring the SCOTS2DLL backend.");
                 final FConfig f_cfg = new FConfig(num_ss_dofs, fitness_type,
                         attr_size, ftn_scale, is_scale, is_complex,
-                        is_monte_carlo, is_rec_strat_sample, sample_size,
+                        is_monte_carlo, is_rec_strat_sample,
+                        sample_size, re_sample_attempts,
                         min_bisect_size, sample_bisect_ratio);
                 ScotsFacade.INSTANCE.configure(f_cfg);
                 m_log.info("Finished configuring the SCOTS2DLL backend.");
@@ -851,20 +855,21 @@ public class FXMLController implements Initializable {
         Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                String msg = null;
                 try {
                     final Grammar grammar = configure_parameters();
                     start_process(grammar);
                 } catch (IllegalAccessException | InvocationTargetException
                         | IllegalArgumentException | IllegalStateException ex) {
-                    LOGGER.log(Level.SEVERE, "Faled to start execution!", ex);
+                    final Throwable thr = ex.getCause();
+                    final Throwable act_th = (thr == null ? ex : thr);
+                    LOGGER.log(Level.SEVERE, "Faled to start execution!", act_th);
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
                             enable_ctrls_run(false, false, false);
-                            m_log.err("Faled to start execution: " + ex.getMessage());
+                            m_log.err("Faled to start execution: " + act_th.getMessage());
                             final Alert alert = new Alert(AlertType.ERROR,
-                                    "Faled to start execution: " + ex.getMessage());
+                                    "Faled to start execution: " + act_th.getMessage());
                             alert.showAndWait();
                         }
                     });
@@ -932,7 +937,7 @@ public class FXMLController implements Initializable {
         m_prop_mgr.register("m_max_gd_txt", m_max_gd_txt);
         m_prop_mgr.register("m_mc_fitness_cbx", m_mc_fitness_cbx);
         m_prop_mgr.register("m_rss_ftn_cbx", m_rss_ftn_cbx);
-        m_prop_mgr.register("m_rel_sam_size_txt", m_rel_sam_size_txt);
+        m_prop_mgr.register("m_act_sam_size_txt", m_act_sam_size_txt);
         m_prop_mgr.register("m_min_bis_size_txt", m_min_bis_size_txt);
         m_prop_mgr.register("m_rss_bis_ratio_sld", m_rss_bis_ratio_sld);
         m_log.info("Finished registering UI parameter components.");
@@ -1031,19 +1036,20 @@ public class FXMLController implements Initializable {
      * Attempts to re-compute the sample size based on the state-space size
      */
     private void re_compute_mc_sample_size() {
-        final String rel_ss = m_rel_sam_size_txt.getText().trim();
+        final String act_ss = m_act_sam_size_txt.getText().trim();
         final Object value = m_dims_cmb.getValue();
-        if (!rel_ss.isEmpty() && (value != null)) {
+        if (!act_ss.isEmpty() && (value != null)) {
             try {
                 final int ss_dim = Integer.parseInt(value.toString());
                 final int ss_size = ScotsFacade.INSTANCE.get_state_space_size(ss_dim);
-                final double coeff = Double.parseDouble(rel_ss);
-                final long size = Math.round(ss_size * coeff);
-                m_act_sam_size_txt.setText(Long.toString(size));
+                final int act_val = Integer.parseInt(act_ss);
+                final double percent = ((double) act_val) / ((double) ss_size) * 100.0;
+                NumberFormat formatter = new DecimalFormat("#00.0000000");
+                m_rel_sam_size_txt.setText(formatter.format(percent) + "%");
             } catch (IllegalAccessException | InvocationTargetException | NumberFormatException ex) {
                 LOGGER.log(Level.WARNING,
                         "Could not compute relative sample size: {0}, exception: {1}",
-                        new Object[]{rel_ss, ex.getMessage()});
+                        new Object[]{act_ss, ex.getMessage()});
             }
         }
     }
@@ -1055,7 +1061,7 @@ public class FXMLController implements Initializable {
             public void changed(ObservableValue<? extends Boolean> observable,
                     Boolean oldValue, Boolean newValue) {
                 m_rss_ftn_cbx.setDisable(oldValue);
-                m_rel_sam_size_txt.setDisable(oldValue);
+                m_act_sam_size_txt.setDisable(oldValue);
                 if (m_rss_ftn_cbx.isSelected()) {
                     m_min_bis_size_txt.setDisable(oldValue);
                     m_rss_bis_ratio_sld.setDisable(oldValue);
@@ -1071,8 +1077,8 @@ public class FXMLController implements Initializable {
             }
         });
 
-        //Add the change listener for m_rel_sam_size_txt to change the m_act_sam_size_txt if needed
-        m_rel_sam_size_txt.textProperty().addListener(new ChangeListener<String>() {
+        //Add the change listener for m_act_sam_size_txt to change the m_rel_sam_size_txt
+        m_act_sam_size_txt.textProperty().addListener(new ChangeListener<String>() {
             @Override
             public void changed(ObservableValue<? extends String> observable,
                     String oldValue, String newValue) {
