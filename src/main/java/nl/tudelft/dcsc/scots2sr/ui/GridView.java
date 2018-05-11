@@ -26,14 +26,13 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.animation.AnimationTimer;
-import javafx.scene.control.ScrollPane;
 
 /**
  * This class represents the population grid on which the population is growing
  *
  * @author Dr. Ivan S. Zapreev
  */
-public class GridView extends ScrollPane {
+public class GridView extends Canvas {
 
     /**
      * The graphics animation that allows to update the canvas with the new
@@ -54,7 +53,7 @@ public class GridView extends ScrollPane {
         private double m_max_ftn = 0.0;
 
         public GridAnimation() {
-            m_2d_graph = m_canvas.getGraphicsContext2D();
+            m_2d_graph = GridView.this.getGraphicsContext2D();
         }
 
         /**
@@ -120,16 +119,17 @@ public class GridView extends ScrollPane {
     private final int m_size_x;
     private final int m_size_y;
     private final double[][] m_fit_grid;
-    private final Canvas m_canvas;
     private final GridAnimation m_animation;
 
+    /**
+     * The basic constructor
+     * @param size_x the number of x axis elements of the grid
+     * @param size_y the number of y axis elements of the grid
+     */
     public GridView(final int size_x, final int size_y) {
+        super();
         this.m_size_x = size_x;
         this.m_size_y = size_y;
-        this.m_canvas = new Canvas();
-        this.setFitToWidth(true);
-        this.setFitToHeight(true);
-        this.setContent(this.m_canvas);
         this.m_animation = new GridAnimation();
         m_fit_grid = new double[size_x][];
         IntStream.range(0, size_x).forEach(pos_x -> {
@@ -230,15 +230,9 @@ public class GridView extends ScrollPane {
      * @param size_y the grid y size
      */
     private void draw_initial(final int size_x, final int size_y) {
-        final int right = (int) snappedRightInset();
-        final int left = (int) snappedLeftInset();
-        final int top = (int) snappedTopInset();
-        final int bottom = (int) snappedBottomInset();
-        final int w = (int) (getWidth() - left - right);
-        final int h = (int) (getHeight() - top - bottom);
-        m_canvas.setLayoutX(left);
-        m_canvas.setLayoutY(top);
-
+        final int w = (int) this.getWidth();
+        final int h = (int) this.getHeight();
+        
         //Make sure we get enough space for all the elements
         int cellW = (w - (size_x + 1) * SPACING) / size_x;
         cellW = (cellW < MIN_SIZE ? MIN_SIZE : cellW);
@@ -247,9 +241,9 @@ public class GridView extends ScrollPane {
         cellH = (cellH < MIN_SIZE ? MIN_SIZE : cellH);
         final int reqH = cellH * size_y + (size_y + 1) * SPACING;
 
-        m_canvas.setWidth(w < reqW ? reqW : w);
-        m_canvas.setHeight(h < reqH ? reqH : h);
-        GraphicsContext g = m_canvas.getGraphicsContext2D();
+        this.setWidth(w < reqW ? reqW : w);
+        this.setHeight(h < reqH ? reqH : h);
+        GraphicsContext g = this.getGraphicsContext2D();
         g.setFill(Color.gray(0.0));
         g.fillRect(0, 0, reqW, reqH);
 

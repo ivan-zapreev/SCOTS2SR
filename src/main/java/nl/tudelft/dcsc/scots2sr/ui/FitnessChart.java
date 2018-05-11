@@ -98,7 +98,6 @@ public class FitnessChart extends LineChart<Number, Number> {
     }
 
     private final AnchorPane m_anchor_pane;
-    private final String m_name;
     private final XYChart.Series<Number, Number> m_mean_ser;
     private final XYChart.Series<Number, Number> m_mdev_ser;
     private final XYChart.Series<Number, Number> m_pdev_ser;
@@ -111,6 +110,11 @@ public class FitnessChart extends LineChart<Number, Number> {
     private double m_max;
     private long m_mut_num;
 
+    /**
+     * The basic constructor
+     * @param anchor_pane the anchor pane where the chart is to be put into
+     * @param name the title of the chart, or null/empty for no title
+     */
     public FitnessChart(final AnchorPane anchor_pane, final String name) {
         super(new NumberAxis("mutants count", 0.0, 1.0, 1.0),
                 new NumberAxis("fitness", -0.2, 1.2, 0.1));
@@ -121,10 +125,11 @@ public class FitnessChart extends LineChart<Number, Number> {
         this.m_max = 0.0;
 
         this.m_anchor_pane = anchor_pane;
-        this.m_name = name;
         this.m_animation = new ChartAnimation();
 
-        this.setTitle(this.m_name);
+        if ((name!= null) && !name.trim().isEmpty()) {
+            this.setTitle(name);
+        }
 
         this.m_mean_ser = new XYChart.Series<>();
         this.m_mdev_ser = new XYChart.Series<>();

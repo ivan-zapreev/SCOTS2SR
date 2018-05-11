@@ -244,49 +244,70 @@
                      <center>
                       <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0" BorderPane.alignment="CENTER">
                            <children>
-                              <SplitPane dividerPositions="0.8" prefHeight="1089.0" prefWidth="628.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <SplitPane fx:id="m_fitness_sp" dividerPositions="0.5" orientation="VERTICAL" prefHeight="1089.0" prefWidth="628.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                 <items>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                        <children>
-                                          <TitledPane collapsible="false" prefHeight="1087.0" prefWidth="183.0" text="Fitness levels" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TitledPane collapsible="false" prefHeight="540.0" prefWidth="626.0" text="Actual population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
-                                                <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="944.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                  <items>
-                                                    <AnchorPane fx:id="m_ex_ftn_pane" minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                                         <children>
-                                                            <StackedAreaChart fx:id="m_ex_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Exact population fitness" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                               <xAxis>
-                                                                  <NumberAxis label="mutation" side="BOTTOM" />
-                                                               </xAxis>
-                                                               <yAxis>
-                                                                  <NumberAxis label="fitness" side="LEFT" />
-                                                               </yAxis>
-                                                            </StackedAreaChart>
-                                                         </children>
-                                                      </AnchorPane>
-                                                    <AnchorPane fx:id="m_req_ftn_pane" minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                                         <children>
-                                                                    <StackedAreaChart fx:id="m_req_ftn_crt" prefHeight="467.0" prefWidth="381.0" title="Complex population fitness" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                                        <xAxis>
-                                                                            <NumberAxis label="mutation" side="BOTTOM" />
-                                                                        </xAxis>
-                                                                        <yAxis>
-                                                                            <NumberAxis label="fitness" side="LEFT" />
-                                                                        </yAxis>
-                                                                    </StackedAreaChart>
-                                                         </children>
-                                                      </AnchorPane>
-                                                  </items>
-                                                </SplitPane>
+                                                <AnchorPane>
+                                                   <children>
+                                                      <SplitPane dividerPositions="0.8" prefHeight="512.0" prefWidth="624.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                        <items>
+                                                            <AnchorPane fx:id="m_ex_ftn_pane">
+                                                               <children>
+                                                                  <StackedAreaChart fx:id="m_ex_ftn_crt" prefHeight="490.0" prefWidth="477.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                                     <xAxis>
+                                                                        <NumberAxis label="mutation" side="BOTTOM" />
+                                                                     </xAxis>
+                                                                     <yAxis>
+                                                                        <NumberAxis label="fitness" side="LEFT" />
+                                                                     </yAxis>
+                                                                  </StackedAreaChart>
+                                                               </children>
+                                                            </AnchorPane>
+                                                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                                               <children>
+                                                                  <ScrollPane fx:id="m_act_grid_pane" prefHeight="490.0" prefWidth="117.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                               </children>
+                                                            </AnchorPane>
+                                                        </items>
+                                                      </SplitPane>
+                                                   </children>
+                                                </AnchorPane>
                                              </content>
                                           </TitledPane>
                                        </children>
                                     </AnchorPane>
-                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                        <children>
-                                          <TitledPane collapsible="false" prefHeight="1087.0" prefWidth="435.0" text="Grid view" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TitledPane collapsible="false" prefHeight="539.0" prefWidth="626.0" text="Complex population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
-                                                <Pane fx:id="m_grid_pane" prefHeight="200.0" prefWidth="200.0" />
+                                                <AnchorPane prefHeight="200.0" prefWidth="200.0">
+                                                   <children>
+                                                      <SplitPane dividerPositions="0.8" prefHeight="511.0" prefWidth="624.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                        <items>
+                                                            <AnchorPane fx:id="m_req_ftn_pane">
+                                                               <children>
+                                                                  <StackedAreaChart fx:id="m_req_ftn_crt" prefHeight="489.0" prefWidth="477.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                                     <xAxis>
+                                                                        <NumberAxis label="mutation" side="BOTTOM" />
+                                                                     </xAxis>
+                                                                     <yAxis>
+                                                                        <NumberAxis label="fitness" side="LEFT" />
+                                                                     </yAxis>
+                                                                  </StackedAreaChart>
+                                                               </children>
+                                                            </AnchorPane>
+                                                          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+                                                               <children>
+                                                                  <ScrollPane fx:id="m_comp_grid_pane" prefHeight="489.0" prefWidth="117.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                               </children>
+                                                            </AnchorPane>
+                                                        </items>
+                                                      </SplitPane>
+                                                   </children>
+                                                </AnchorPane>
                                              </content>
                                           </TitledPane>
                                        </children>

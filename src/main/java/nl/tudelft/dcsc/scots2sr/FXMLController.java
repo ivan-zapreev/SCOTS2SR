@@ -22,9 +22,6 @@
 package nl.tudelft.dcsc.scots2sr;
 
 import java.io.BufferedWriter;
-import nl.tudelft.dcsc.scots2sr.jni.ScotsFacade;
-import nl.tudelft.dcsc.scots2sr.ui.PMVisualizer;
-import nl.tudelft.dcsc.scots2sr.ui.GridView;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -68,14 +65,15 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
 import javafx.scene.control.ListView;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 
 import nl.tudelft.dcsc.scots2jni.FConfig;
 import nl.tudelft.dcsc.scots2sr.ui.ConsoleLog;
+import nl.tudelft.dcsc.scots2sr.ui.ProgressUpdater;
 import nl.tudelft.dcsc.scots2sr.utils.Pair;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessType;
 import nl.tudelft.dcsc.sr2jlib.grid.Individual;
@@ -86,6 +84,8 @@ import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
 import nl.tudelft.dcsc.sr2jlib.grammar.GrammarConfig;
 import nl.tudelft.dcsc.sr2jlib.grammar.Grammar;
+import nl.tudelft.dcsc.scots2sr.jni.ScotsFacade;
+import nl.tudelft.dcsc.scots2sr.ui.PMVisualizer;
 
 /**
  * This is the main UI controller implementation
@@ -184,9 +184,14 @@ public class FXMLController implements Initializable {
     @FXML
     private StackedAreaChart m_ex_ftn_crt;
     @FXML
-    private Pane m_grid_pane;
+    private ScrollPane m_act_grid_pane;
+    @FXML
+    private ScrollPane m_comp_grid_pane;
     @FXML
     private ProgressBar m_prog_ind;
+
+    @FXML
+    private SplitPane m_fitness_sp;
 
     @FXML
     private CheckBox m_mc_fitness_cbx;
@@ -337,7 +342,7 @@ public class FXMLController implements Initializable {
         double min_ind_str_size = Double.MAX_VALUE;
         update_main_progress(-1.0);
 
-        m_log.info("Started getting the best fit infividuals");
+        m_log.info("Started selecting the best fit individual");
 
         //Retrieve all the best and equally fit individuals
         final List<Individual> inds = m_manager.get_best_fit_ind();
@@ -349,29 +354,36 @@ public class FXMLController implements Initializable {
             m_log.err("There is no single individual available!");
             throw new IllegalStateException("The best individuals list is emty!");
         } else {
+            //Create the progress updater
+            ProgressUpdater updater = new ProgressUpdater(
+                    (curr_cnt, total_cnt) -> {
+                        final String info_msg = "Optimized individual size: "
+                        + curr_cnt + "/" + total_cnt;
+                        LOGGER.log(Level.INFO, info_msg);
+                        m_log.info(info_msg);
+                        update_main_progress(((double) curr_cnt) / ((double) total_cnt));
+                    }, inds.size());
+
             m_log.info("The number of candidate individuals is: " + inds.size());
+
+            //Optimize the individuals in a parallel way
+            if (m_is_opt_on_save_cbx.isSelected()) {
+                m_log.info("Started optimizing individuals' size");
+                inds.stream().parallel().forEach((ind) -> {
+                    ind.optimize();
+                    updater.update();
+                });
+                m_log.info("Finished optimizing individuals' size");
+            }
+
+            //Re-set the progress
+            update_main_progress(-1.0);
+
+            //Compute the individual's minimum sequentially
+            m_log.info("Started choosing the smallest individual.");
             for (int ind_idx = 0; ind_idx < inds.size(); ++ind_idx) {
                 //Get the individual
                 final Individual ind = inds.get(ind_idx);
-
-                LOGGER.log(Level.INFO, "Considering individual: {0}/{1})",
-                        new Object[]{ind_idx + 1, inds.size()});
-
-                //Optimize the individual
-                if (m_is_opt_on_save_cbx.isSelected()) {
-                    m_log.info("Started optimizing size for individual: "
-                            + (ind_idx + 1) + "/" + inds.size());
-                    ind.optimize();
-                    m_log.info("Finished optimizing size for individual: "
-                            + (ind_idx + 1) + "/" + inds.size());
-                }
-
-                //Update progress indicator, only do it when the percentage is high enough
-                double percentage = ((double) (ind_idx + 1)) / ((double) inds.size());
-                if (percentage > 0.1) {
-                    update_main_progress(percentage);
-                }
-
                 //Get minimum individual size
                 final List<String> ind_str = ind.get_expr_text();
                 final double ind_str_size = compute_ind_size(ind_str);
@@ -382,10 +394,10 @@ public class FXMLController implements Initializable {
                     min_ind_str_size = ind_str_size;
                 }
             }
+            m_log.info("Finished choosing the smallest individual.");
         }
-        update_main_progress(-1.0);
 
-        m_log.info("Finished getting the best fit infividuals.");
+        m_log.info("Finished selecting the best fit individual.");
         return new Pair<>(min_ind, min_ind_str);
     }
 
@@ -527,7 +539,8 @@ public class FXMLController implements Initializable {
                         public void run() {
                             m_ctrl_name_txt.setText(full_file_name);
                             m_dims_cmb.getItems().clear();
-                            m_grid_pane.getChildren().clear();
+                            m_act_grid_pane.setContent(null);
+                            m_comp_grid_pane.setContent(null);
                             m_req_ftn_pane.getChildren().clear();
                             m_req_ftn_pane.getChildren().add(m_req_ftn_crt);
                             m_ex_ftn_pane.getChildren().clear();
@@ -560,6 +573,7 @@ public class FXMLController implements Initializable {
         m_mc_fitness_cbx.setDisable(is_dis);
         if (m_mc_fitness_cbx.isSelected()) {
             m_act_sam_size_txt.setDisable(is_dis);
+            m_re_sample_attempts_txt.setDisable(is_dis);
             m_rss_ftn_cbx.setDisable(is_dis);
             if (m_rss_ftn_cbx.isSelected()) {
                 m_min_bis_size_txt.setDisable(is_dis);
@@ -672,11 +686,12 @@ public class FXMLController implements Initializable {
             final boolean is_start,
             final boolean is_ok,
             final boolean is_stop) {
-        Task<Void> task = new Task<Void>() {
+        final Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
                 //Stop the manager first
                 if (!is_start && is_stop) {
+                    m_stop_btn.setDisable(true);
                     stop_process_manager();
                 }
 
@@ -809,10 +824,12 @@ public class FXMLController implements Initializable {
                 m_log.info("Preparing to start symbolic regression");
 
                 //Instantiaet the visualizer
-                GridView grid_view = new GridView(size_x, size_y);
                 final PMVisualizer visualizer = new PMVisualizer(
-                        size_x, size_y, m_prog_ind, grid_view,
-                        m_ex_ftn_pane, m_req_ftn_pane) {
+                        size_x, size_y, m_prog_ind,
+                        m_act_grid_pane,
+                        (m_is_compl_cbx.isSelected() ? m_comp_grid_pane : null),
+                        m_ex_ftn_pane,
+                        (m_is_compl_cbx.isSelected() ? m_req_ftn_pane : null)) {
                     @Override
                     public synchronized void set(final Individual ind) {
                         //Call the super class method first
@@ -838,8 +855,6 @@ public class FXMLController implements Initializable {
 
                 //Instantiate the process manager
                 m_manager = new ProcessManager(config);
-                m_grid_pane.getChildren().clear();
-                m_grid_pane.getChildren().add(grid_view);
 
                 //Start the process manager
                 m_manager.start();
@@ -938,6 +953,7 @@ public class FXMLController implements Initializable {
         m_prop_mgr.register("m_mc_fitness_cbx", m_mc_fitness_cbx);
         m_prop_mgr.register("m_rss_ftn_cbx", m_rss_ftn_cbx);
         m_prop_mgr.register("m_act_sam_size_txt", m_act_sam_size_txt);
+        m_prop_mgr.register("m_re_sample_attempts_txt", m_re_sample_attempts_txt);
         m_prop_mgr.register("m_min_bis_size_txt", m_min_bis_size_txt);
         m_prop_mgr.register("m_rss_bis_ratio_sld", m_rss_bis_ratio_sld);
         m_log.info("Finished registering UI parameter components.");
@@ -1015,6 +1031,7 @@ public class FXMLController implements Initializable {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable,
                     Boolean oldValue, Boolean newValue) {
+                m_fitness_sp.setDividerPositions(oldValue ? 1.0 : 0.5);
                 if (m_is_compl_cbx.isSelected()) {
                     //If the complex fitness is selected then
                     m_fit_cmb.setDisable(false);
@@ -1062,6 +1079,7 @@ public class FXMLController implements Initializable {
                     Boolean oldValue, Boolean newValue) {
                 m_rss_ftn_cbx.setDisable(oldValue);
                 m_act_sam_size_txt.setDisable(oldValue);
+                m_re_sample_attempts_txt.setDisable(oldValue);
                 if (m_rss_ftn_cbx.isSelected()) {
                     m_min_bis_size_txt.setDisable(oldValue);
                     m_rss_bis_ratio_sld.setDisable(oldValue);
