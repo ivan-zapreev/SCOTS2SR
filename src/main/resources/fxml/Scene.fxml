@@ -34,9 +34,9 @@
                             </ToolBar>
                      </top>
                      <left>
-                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="907.0" prefWidth="332.0" BorderPane.alignment="CENTER">
+                      <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="1089.0" prefWidth="404.0" BorderPane.alignment="CENTER">
                            <children>
-                              <TitledPane collapsible="false" prefHeight="1104.0" prefWidth="332.0" text="Configuration" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                              <TitledPane collapsible="false" prefHeight="1089.0" prefWidth="404.0" text="Configuration" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                  <content>
                                     <TabPane prefHeight="907.0" prefWidth="100.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                       <tabs>
@@ -44,14 +44,14 @@
                                           <content>
                                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                                    <children>
-                                                      <ScrollPane prefHeight="167.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                      <ScrollPane prefHeight="1028.0" prefWidth="402.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                         <content>
                                                           <AnchorPane prefHeight="1055.0" prefWidth="303.0">
                                                                <children>
-                                                                  <GridPane prefHeight="1055.0" prefWidth="303.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                                  <GridPane prefHeight="1055.0" prefWidth="369.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="-66.0" AnchorPane.topAnchor="0.0">
                                                                     <columnConstraints>
-                                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                                                                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                                                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="193.0" minWidth="10.0" prefWidth="155.0" />
+                                                                      <ColumnConstraints hgrow="SOMETIMES" maxWidth="221.0" minWidth="10.0" prefWidth="214.0" />
                                                                     </columnConstraints>
                                                                     <rowConstraints>
                                                                       <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
@@ -101,7 +101,7 @@
                                                                            </GridPane.margin>
                                                                         </TextArea>
                                                                                   <Label text="State dim:" GridPane.rowIndex="1" />
-                                                                                  <ComboBox fx:id="m_dims_cmb" disable="true" prefHeight="28.0" prefWidth="292.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                                                                  <ComboBox fx:id="m_dims_cmb" disable="true" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                                                            <GridPane.margin>
                                                                               <Insets />
                                                                            </GridPane.margin>
@@ -137,7 +137,7 @@
                                                                         <TextField fx:id="m_max_gd_txt" promptText="The maximum grammar depth for the fixed point" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="11" />
                                                                         <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" GridPane.rowIndex="9" />
                                                                         <Label text="Tournament type" GridPane.rowIndex="20" />
-                                                                        <ComboBox fx:id="m_tour_cmb" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="20" />
+                                                                        <ComboBox fx:id="m_tour_cmb" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="20" />
                                                                         <CheckBox fx:id="m_is_scale_cbx" mnemonicParsing="false" selected="true" text="Is scale" GridPane.rowIndex="21">
                                                                            <GridPane.margin>
                                                                               <Insets />
@@ -149,7 +149,7 @@
                                                                            </GridPane.margin>
                                                                         </CheckBox>
                                                                         <Label text="Complex fitness type" GridPane.rowIndex="22" />
-                                                                        <ComboBox fx:id="m_fit_cmb" prefWidth="150.0" GridPane.columnIndex="1" GridPane.rowIndex="22" />
+                                                                        <ComboBox fx:id="m_fit_cmb" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="22" />
                                                                         <Label text="Attractor size" GridPane.rowIndex="23" />
                                                                         <TextField fx:id="m_attract_txt" promptText="The 1.0 fitness area range, max 0.5" text="0.49999" GridPane.columnIndex="1" GridPane.rowIndex="23" />
                                                                         <Label text="Fitness scale" GridPane.rowIndex="24" />

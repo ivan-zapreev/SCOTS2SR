@@ -654,7 +654,7 @@ public class FXMLController implements Initializable {
      * @param is_warn_dlg if true then a warning dialog will be shown
      */
     private void stop_process_manager(final boolean is_warn_dlg) {
-        if (m_manager.is_active()) {
+        if ((m_manager != null) && m_manager.is_active()) {
             m_stop_btn.setDisable(true);
 
             m_log.info("Started stopping the process manager.");
