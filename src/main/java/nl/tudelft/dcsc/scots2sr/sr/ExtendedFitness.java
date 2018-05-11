@@ -21,8 +21,6 @@
  */
 package nl.tudelft.dcsc.scots2sr.sr;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 
 /**
@@ -33,8 +31,6 @@ import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
  */
 public class ExtendedFitness extends Fitness {
 
-    private static final Logger LOGGER = Logger.getLogger(ExtendedFitness.class.getName());
-
     //Stores the exact fitness
     private final double m_act_ftn;
 
@@ -43,21 +39,30 @@ public class ExtendedFitness extends Fitness {
      *
      * @param act_ftn the actual fitness - the exact fitness we want to get 1.0
      * value of
-     * @param req_ftn the requested fitness to guide the GP process, is an
+     * @param ext_ftn the requested fitness to guide the GP process, is an
      * overestimation of the actual fitness
      */
-    public ExtendedFitness(final double act_ftn, final double req_ftn) {
-        super(req_ftn);
+    public ExtendedFitness(final double act_ftn, final double ext_ftn) {
+        super(ext_ftn);
         m_act_ftn = act_ftn;
     }
 
     /**
-     * Get the exact fitness
+     * Get the exact (actual) fitness
      *
      * @return the exact fitness
      */
-    public double get_actual_fitness() {
+    public double get_act_ftn() {
         return m_act_ftn;
+    }
+
+    /**
+     * Get the extended (used in SR) fitness
+     *
+     * @return the exact fitness
+     */
+    public double get_ext_ftn() {
+        return m_ftn;
     }
 
     @Override
@@ -67,7 +72,7 @@ public class ExtendedFitness extends Fitness {
 
     @Override
     public String toString() {
-        return "[req: " + m_ftn + ", ex: " + m_act_ftn + "]";
+        return "[ext: " + m_ftn + ", act: " + m_act_ftn + "]";
     }
 
     @Override

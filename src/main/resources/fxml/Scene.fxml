@@ -77,6 +77,7 @@
                                                                         <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
                                                                         <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
                                                                         <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
+                                                                        <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" valignment="CENTER" vgrow="ALWAYS" />
                                                                         <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
                                                                         <RowConstraints maxHeight="1.7976931348623157E308" valignment="CENTER" vgrow="ALWAYS" />
                                                                         <RowConstraints valignment="CENTER" vgrow="ALWAYS" />
@@ -138,24 +139,24 @@
                                                                         <CheckBox fx:id="m_is_prop_pn_cbx" mnemonicParsing="false" text="Propagate P-Nodes" GridPane.rowIndex="9" />
                                                                         <Label text="Tournament type" GridPane.rowIndex="20" />
                                                                         <ComboBox fx:id="m_tour_cmb" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="20" />
-                                                                        <CheckBox fx:id="m_is_scale_cbx" mnemonicParsing="false" selected="true" text="Is scale" GridPane.rowIndex="21">
+                                                                        <CheckBox fx:id="m_is_scale_cbx" mnemonicParsing="false" selected="true" text="Scale to best fit" GridPane.rowIndex="21">
                                                                            <GridPane.margin>
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </CheckBox>
-                                                                        <CheckBox fx:id="m_is_compl_cbx" mnemonicParsing="false" selected="true" text="Complex fitness" GridPane.columnIndex="1" GridPane.rowIndex="21">
+                                                                        <CheckBox fx:id="m_is_extend_cbx" mnemonicParsing="false" selected="true" text="Extended fitness" GridPane.columnIndex="1" GridPane.rowIndex="21">
                                                                            <GridPane.margin>
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </CheckBox>
-                                                                        <Label text="Complex fitness type" GridPane.rowIndex="22" />
+                                                                        <Label text="Extended fitness type" GridPane.rowIndex="22" />
                                                                         <ComboBox fx:id="m_fit_cmb" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="22" />
-                                                                        <Label text="Attractor size" GridPane.rowIndex="23" />
-                                                                        <TextField fx:id="m_attract_txt" promptText="The 1.0 fitness area range, max 0.5" text="0.49999" GridPane.columnIndex="1" GridPane.rowIndex="23" />
-                                                                        <Label text="Fitness scale" GridPane.rowIndex="24" />
-                                                                        <TextField fx:id="m_ftn_scale_txt" promptText="The scale to be used for the complex fitness functions" GridPane.columnIndex="1" GridPane.rowIndex="24" />
-                                                                        <Label text="Change vs. Replace" GridPane.rowIndex="26" />
-                                                                        <Slider fx:id="m_ch_vs_rep_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="26">
+                                                                        <Label text="Attractor size" GridPane.rowIndex="24" />
+                                                                        <TextField fx:id="m_attract_txt" promptText="The 1.0 fitness area range, max 0.5" text="0.49999" GridPane.columnIndex="1" GridPane.rowIndex="24" />
+                                                                        <Label text="Fitness scale" GridPane.rowIndex="25" />
+                                                                        <TextField fx:id="m_ftn_scale_txt" promptText="The scale to be used for the complex fitness functions" GridPane.columnIndex="1" GridPane.rowIndex="25" />
+                                                                        <Label text="Change vs. Replace" GridPane.rowIndex="27" />
+                                                                        <Slider fx:id="m_ch_vs_rep_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="27">
                                                                            <opaqueInsets>
                                                                               <Insets />
                                                                            </opaqueInsets>
@@ -163,38 +164,38 @@
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </Slider>
-                                                                        <Label text="Initial population" GridPane.rowIndex="27" />
-                                                                        <Slider fx:id="m_init_pop_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.1" GridPane.columnIndex="1" GridPane.rowIndex="27">
+                                                                        <Label text="Initial population" GridPane.rowIndex="28" />
+                                                                        <Slider fx:id="m_init_pop_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" snapToTicks="true" value="0.1" GridPane.columnIndex="1" GridPane.rowIndex="28">
                                                                            <opaqueInsets>
                                                                               <Insets />
                                                                            </opaqueInsets>
                                                                         </Slider>
-                                                                        <Label text="Min. node grow factor" GridPane.rowIndex="28" />
-                                                                        <TextField fx:id="m_min_ngf_txt" promptText="The initial population multiple" text="0.5" GridPane.columnIndex="1" GridPane.rowIndex="28" />
-                                                                        <Label text="Max. node grow factor" GridPane.rowIndex="29" />
-                                                                        <TextField fx:id="m_max_ngf_txt" promptText="The initial population multiple" text="2.0" GridPane.columnIndex="1" GridPane.rowIndex="29" />
-                                                                        <Label text="Term. vs non-term." GridPane.rowIndex="30" />
-                                                                        <Slider fx:id="m_tm_vs_tnm_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="30" />
-                                                                        <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" GridPane.rowIndex="32">
+                                                                        <Label text="Min. node grow factor" GridPane.rowIndex="29" />
+                                                                        <TextField fx:id="m_min_ngf_txt" promptText="The initial population multiple" text="0.5" GridPane.columnIndex="1" GridPane.rowIndex="29" />
+                                                                        <Label text="Max. node grow factor" GridPane.rowIndex="30" />
+                                                                        <TextField fx:id="m_max_ngf_txt" promptText="The initial population multiple" text="2.0" GridPane.columnIndex="1" GridPane.rowIndex="30" />
+                                                                        <Label text="Term. vs non-term." GridPane.rowIndex="31" />
+                                                                        <Slider fx:id="m_tm_vs_tnm_sld" blockIncrement="0.001" majorTickUnit="0.1" max="1.0" showTickLabels="true" showTickMarks="true" value="0.5" GridPane.columnIndex="1" GridPane.rowIndex="31" />
+                                                                        <CheckBox fx:id="m_is_avoid_equal_cbx" mnemonicParsing="false" text="Avoid equally fit" GridPane.rowIndex="33">
                                                                            <GridPane.margin>
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </CheckBox>
-                                                                        <CheckBox fx:id="m_is_child_lim_cbx" mnemonicParsing="false" text="Child life limits" GridPane.columnIndex="1" GridPane.rowIndex="32">
+                                                                        <CheckBox fx:id="m_is_child_lim_cbx" mnemonicParsing="false" text="Child life limits" GridPane.columnIndex="1" GridPane.rowIndex="33">
                                                                            <GridPane.margin>
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </CheckBox>
-                                                                        <Label text="Min. child count" GridPane.rowIndex="33" />
-                                                                        <TextField fx:id="m_min_ch_cnt_txt" disable="true" promptText="The minimum number of children" text="100" GridPane.columnIndex="1" GridPane.rowIndex="33" />
-                                                                        <Label text="Max. child count" GridPane.rowIndex="34" />
-                                                                        <TextField fx:id="m_max_ch_cnt_txt" disable="true" promptText="The maximum number of children" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="34" />
-                                                                        <Label text="Child spread X:  " GridPane.rowIndex="35" />
-                                                                        <TextField fx:id="m_ch_sp_x_txt" prefHeight="27.0" prefWidth="79.0" promptText="The +/- cells in X relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="35" />
-                                                                        <Label text="Child spread Y:  " GridPane.rowIndex="36" />
-                                                                        <TextField fx:id="m_ch_sp_y_txt" prefHeight="27.0" prefWidth="84.0" promptText="The +/- cells in Y relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="36" />
+                                                                        <Label text="Min. child count" GridPane.rowIndex="34" />
+                                                                        <TextField fx:id="m_min_ch_cnt_txt" disable="true" promptText="The minimum number of children" text="100" GridPane.columnIndex="1" GridPane.rowIndex="34" />
+                                                                        <Label text="Max. child count" GridPane.rowIndex="35" />
+                                                                        <TextField fx:id="m_max_ch_cnt_txt" disable="true" promptText="The maximum number of children" text="1000" GridPane.columnIndex="1" GridPane.rowIndex="35" />
+                                                                        <Label text="Child spread X:  " GridPane.rowIndex="36" />
+                                                                        <TextField fx:id="m_ch_sp_x_txt" prefHeight="27.0" prefWidth="79.0" promptText="The +/- cells in X relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="36" />
+                                                                        <Label text="Child spread Y:  " GridPane.rowIndex="37" />
+                                                                        <TextField fx:id="m_ch_sp_y_txt" prefHeight="27.0" prefWidth="84.0" promptText="The +/- cells in Y relative to the parent to put the child" text="1" GridPane.columnIndex="1" GridPane.rowIndex="37" />
                                                                         <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="19" />
-                                                                        <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="25" />
+                                                                        <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="26" />
                                                                         <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="3" />
                                                                         <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="8" />
                                                                         <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="12" />
@@ -211,10 +212,11 @@
                                                                               <Insets />
                                                                            </opaqueInsets>
                                                                         </Slider>
-                                                                        <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="31" />
+                                                                        <Separator prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="32" />
                                                                         <TextField fx:id="m_act_sam_size_txt" promptText="The sample size to be used for Monte Carlo simulations" text="10000" GridPane.columnIndex="1" GridPane.rowIndex="14" />
                                                                         <Label text="Re-sampling attempts" GridPane.rowIndex="16" />
                                                                         <TextField fx:id="m_re_sample_attempts_txt" promptText="The number of attempts to re-sample duplicate or non-domain states" text="3" GridPane.columnIndex="1" GridPane.rowIndex="16" />
+                                                                        <CheckBox fx:id="m_is_compl_cbx" mnemonicParsing="false" selected="true" text="Combine actual fitness into extended" GridPane.columnSpan="2" GridPane.rowIndex="23" />
                                                                      </children>
                                                                   </GridPane>
                                                                </children>
@@ -281,7 +283,7 @@
                                     </AnchorPane>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                        <children>
-                                          <TitledPane collapsible="false" prefHeight="539.0" prefWidth="626.0" text="Complex population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TitledPane collapsible="false" prefHeight="539.0" prefWidth="626.0" text="Extended population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
                                                 <AnchorPane prefHeight="200.0" prefWidth="200.0">
                                                    <children>

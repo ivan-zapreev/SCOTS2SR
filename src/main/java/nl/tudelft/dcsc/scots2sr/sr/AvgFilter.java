@@ -105,7 +105,7 @@ public class AvgFilter implements IndividualFilter {
         final Fitness ftn = ind.get_fitness();
         if (ftn instanceof ExtendedFitness) {
             //Filter out all individuals with the exact fitness less than given
-            return (((ExtendedFitness) ftn).get_actual_fitness() < m_ftn_bound);
+            return (((ExtendedFitness) ftn).get_act_ftn() < m_ftn_bound);
         } else {
             //If it is not an extended fitness then the individual's compilation was failed
             return true;

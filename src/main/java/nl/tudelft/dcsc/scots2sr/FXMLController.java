@@ -161,6 +161,8 @@ public class FXMLController implements Initializable {
     @FXML
     private CheckBox m_is_scale_cbx;
     @FXML
+    private CheckBox m_is_extend_cbx;
+    @FXML
     private CheckBox m_is_compl_cbx;
     @FXML
     private CheckBox m_is_child_lim_cbx;
@@ -596,12 +598,13 @@ public class FXMLController implements Initializable {
     }
 
     private void enable_fitness_ctrls(final boolean is_dis) {
-        m_is_compl_cbx.setDisable(is_dis);
-        if (m_is_compl_cbx.isSelected()) {
+        m_is_extend_cbx.setDisable(is_dis);
+        if (m_is_extend_cbx.isSelected()) {
             //If the complex fitness is selected then some of
             //its controls can be enabled, so we disable them
             m_fit_cmb.setDisable(is_dis);
             m_attract_txt.setDisable(is_dis);
+            m_is_compl_cbx.setDisable(is_dis);
             //The exatra condition here is needed to avoid enabling 
             //the scaling control in case the exact fitness is used
             m_ftn_scale_txt.setDisable(is_dis
@@ -754,6 +757,7 @@ public class FXMLController implements Initializable {
                 final double attr_size = Double.parseDouble(m_attract_txt.getText());
                 final double ftn_scale = Double.parseDouble(m_ftn_scale_txt.getText());
                 final boolean is_scale = m_is_scale_cbx.isSelected();
+                final boolean is_extend = m_is_extend_cbx.isSelected();
                 final boolean is_complex = m_is_compl_cbx.isSelected();
                 final boolean is_monte_carlo = m_mc_fitness_cbx.isSelected();
                 final boolean is_rec_strat_sample = m_rss_ftn_cbx.isSelected();
@@ -765,7 +769,7 @@ public class FXMLController implements Initializable {
                 //Talk to Scots via interface
                 m_log.info("Started configuring the SCOTS2DLL backend.");
                 final FConfig f_cfg = new FConfig(num_ss_dofs, fitness_type,
-                        attr_size, ftn_scale, is_scale, is_complex,
+                        attr_size, ftn_scale, is_scale, is_extend, is_complex,
                         is_monte_carlo, is_rec_strat_sample,
                         sample_size, re_sample_attempts,
                         min_bisect_size, sample_bisect_ratio);
@@ -816,6 +820,8 @@ public class FXMLController implements Initializable {
                 ? Long.MAX_VALUE : Long.parseLong(m_max_mut_txt.getText()));
         final double init_pop_mult = m_init_pop_sld.getValue();
         final boolean is_stop_found = m_is_stop_cbx.isSelected();
+        final boolean is_extend = m_is_extend_cbx.isSelected();
+        final boolean is_complex = m_is_compl_cbx.isSelected();
         final SelectionType sel_type = (SelectionType) m_tour_cmb.getValue();
         final boolean is_child_limit = m_is_child_lim_cbx.isSelected();
         final boolean is_avoid_equal = m_is_avoid_equal_cbx.isSelected();
@@ -843,11 +849,9 @@ public class FXMLController implements Initializable {
 
                 //Instantiaet the visualizer
                 final PMVisualizer visualizer = new PMVisualizer(
-                        size_x, size_y, m_prog_ind,
-                        m_act_grid_pane,
-                        (m_is_compl_cbx.isSelected() ? m_comp_grid_pane : null),
-                        m_ex_ftn_pane,
-                        (m_is_compl_cbx.isSelected() ? m_req_ftn_pane : null)) {
+                        is_extend, size_x, size_y, m_prog_ind,
+                        m_act_grid_pane, m_comp_grid_pane,
+                        m_ex_ftn_pane, m_req_ftn_pane) {
                     @Override
                     public synchronized void set(final Individual ind) {
                         //Call the super class method first
@@ -964,6 +968,7 @@ public class FXMLController implements Initializable {
         m_prop_mgr.register("m_is_iter_cbx", m_is_iter_cbx);
         m_prop_mgr.register("m_is_prop_pn_cbx", m_is_prop_pn_cbx);
         m_prop_mgr.register("m_is_scale_cbx", m_is_scale_cbx);
+        m_prop_mgr.register("m_is_extend_cbx", m_is_extend_cbx);
         m_prop_mgr.register("m_is_compl_cbx", m_is_compl_cbx);
         m_prop_mgr.register("m_is_child_lim_cbx", m_is_child_lim_cbx);
         m_prop_mgr.register("m_is_avoid_equal_cbx", m_is_avoid_equal_cbx);
@@ -1048,24 +1053,19 @@ public class FXMLController implements Initializable {
     }
 
     private void set_up_complicated_fitness() {
-        m_is_compl_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
+        m_is_extend_cbx.selectedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable,
                     Boolean oldValue, Boolean newValue) {
                 m_fitness_sp.setDividerPositions(oldValue ? 1.0 : 0.5);
-                if (m_is_compl_cbx.isSelected()) {
-                    //If the complex fitness is selected then
-                    m_fit_cmb.setDisable(false);
-                    //The exact fitness does not require the scaling factor
-                    m_ftn_scale_txt.setDisable(
-                            m_fit_cmb.getSelectionModel().getSelectedItem() == FitnessType.EXACT);
-                    m_attract_txt.setDisable(false);
-                } else {
-                    //If the complex fitness is not selected then diable all
-                    m_fit_cmb.setDisable(true);
-                    m_ftn_scale_txt.setDisable(true);
-                    m_attract_txt.setDisable(true);
-                }
+                final boolean is_ext_ftn = m_is_extend_cbx.isSelected();
+                m_fit_cmb.setDisable(!is_ext_ftn);
+                m_is_compl_cbx.setDisable(!is_ext_ftn);
+                m_attract_txt.setDisable(!is_ext_ftn);
+                final FitnessType ftn_type = m_fit_cmb.getSelectionModel().getSelectedItem();
+                final boolean is_exact_ftn = (ftn_type == FitnessType.EXACT);
+                //The exact fitness does not require the scaling factor
+                m_ftn_scale_txt.setDisable(is_ext_ftn && is_exact_ftn || !is_ext_ftn);
             }
         });
     }

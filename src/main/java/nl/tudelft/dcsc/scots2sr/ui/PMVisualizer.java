@@ -77,57 +77,60 @@ public class PMVisualizer extends FitnessTracker {
         }
     };
 
-    private final boolean m_is_co_view;
+    final boolean m_is_extend;
     private boolean m_is_update;
     private final ChartUpdater m_chart_upd;
     private final ProgressBar m_prog_ind;
     private final GridView m_ex_grid_view;
-    private final GridView m_co_grid_view;
-    private final FitnessChart m_co_chart;
+    private final GridView m_ext_grid_view;
+    private final FitnessChart m_ext_chart;
     private final FitnessChart m_ex_chart;
     private FitnessChange m_ftn_change;
 
     /**
      * The basic constructor
      *
+     * @param is_extend true if the extended fitness is requested
      * @param size_x the number of x elements in the grid
      * @param size_y the number of y elements in the grid
      * @param prog_ind the progress indicator to be used
-     * @param ex_grid_pane the pane to store the actual fitness grid
-     * @param co_grid_pane the pane to store the complex fitness grid
-     * @param ex_ftn_pane the pane for exact fitness chart
-     * @param co_ftn_pane the pane for complex fitness chart
+     * @param act_grid_pane the pane to store the actual fitness grid
+     * @param ext_grid_pane the pane to store the extended fitness grid, may be
+     * null if is_extend is false
+     * @param act_ftn_pane the pane for actual fitness chart
+     * @param ext_ftn_pane the pane for extended fitness chart, may be null if
+     * is_extend is false
      */
-    public PMVisualizer(final int size_x,
-            final int size_y,
+    public PMVisualizer(
+            final boolean is_extend,
+            final int size_x, final int size_y,
             final ProgressBar prog_ind,
-            final ScrollPane ex_grid_pane,
-            final ScrollPane co_grid_pane,
-            final AnchorPane ex_ftn_pane,
-            final AnchorPane co_ftn_pane) {
+            final ScrollPane act_grid_pane,
+            final ScrollPane ext_grid_pane,
+            final AnchorPane act_ftn_pane,
+            final AnchorPane ext_ftn_pane) {
         super(size_x, size_y);
 
-        this.m_is_update = false;
-        this.m_chart_upd = new ChartUpdater();
-        this.m_prog_ind = prog_ind;
-        this.m_prog_ind.setProgress(-1.0);
+        m_is_extend = is_extend;
+        m_is_update = false;
+        m_chart_upd = new ChartUpdater();
+        m_prog_ind = prog_ind;
+        m_prog_ind.setProgress(-1.0);
 
-        this.m_ex_grid_view = new GridView(size_x, size_y);
-        ex_grid_pane.setContent(this.m_ex_grid_view);
-        this.m_ex_chart = new FitnessChart(ex_ftn_pane, null);
-        this.m_ex_chart.set_active();
-        this.m_ftn_change = null;
+        m_ex_grid_view = new GridView(size_x, size_y);
+        act_grid_pane.setContent(m_ex_grid_view);
+        m_ex_chart = new FitnessChart(act_ftn_pane, null);
+        m_ex_chart.set_active();
+        m_ftn_change = null;
 
-        if ((co_grid_pane != null) && (co_ftn_pane != null)) {
-            this.m_is_co_view = true;
-            this.m_co_grid_view = new GridView(size_x, size_y);
-            co_grid_pane.setContent(this.m_co_grid_view);
-            this.m_co_chart = new FitnessChart(co_ftn_pane, null);
-            this.m_co_chart.set_active();
+        if (m_is_extend) {
+            m_ext_grid_view = new GridView(size_x, size_y);
+            ext_grid_pane.setContent(m_ext_grid_view);
+            m_ext_chart = new FitnessChart(ext_ftn_pane, null);
+            m_ext_chart.set_active();
         } else {
-            this.m_is_co_view = false;
-            this.m_co_grid_view = null;
-            this.m_co_chart = null;
+            m_ext_grid_view = null;
+            m_ext_chart = null;
         }
     }
 
@@ -136,9 +139,9 @@ public class PMVisualizer extends FitnessTracker {
         //Start the grid/chart animations
         m_ex_grid_view.start();
         m_ex_chart.start();
-        if (m_is_co_view) {
-            m_co_grid_view.start();
-            m_co_chart.start();
+        if (m_is_extend) {
+            m_ext_grid_view.start();
+            m_ext_chart.start();
         }
         //Start the progress update
         m_prog_ind.setVisible(true);
@@ -155,7 +158,7 @@ public class PMVisualizer extends FitnessTracker {
         final Fitness ftn = ind.get_fitness();
         final double act_ftn;
         if (ftn instanceof ExtendedFitness) {
-            act_ftn = ((ExtendedFitness) ftn).get_actual_fitness();
+            act_ftn = ((ExtendedFitness) ftn).get_act_ftn();
         } else {
             act_ftn = 0.0;
         }
@@ -163,9 +166,9 @@ public class PMVisualizer extends FitnessTracker {
         m_ex_grid_view.set_fitness(ind.get_pos_x(), ind.get_pos_y(), act_ftn);
 
         //Visualize the normalized complex fitness
-        if (m_is_co_view) {
-            final double norm_com_ftn = ftn.get_fitness() / Math.sqrt(2.0);
-            m_co_grid_view.set_fitness(ind.get_pos_x(), ind.get_pos_y(), norm_com_ftn);
+        if (m_is_extend) {
+            final double ext_ftn = ftn.get_fitness();
+            m_ext_grid_view.set_fitness(ind.get_pos_x(), ind.get_pos_y(), ext_ftn);
         }
 
         //Mart that we need an update
@@ -179,8 +182,8 @@ public class PMVisualizer extends FitnessTracker {
 
         //Update the Grid
         m_ex_grid_view.clear_fitness(ind.get_pos_x(), ind.get_pos_y());
-        if (m_is_co_view) {
-            m_co_grid_view.clear_fitness(ind.get_pos_x(), ind.get_pos_y());
+        if (m_is_extend) {
+            m_ext_grid_view.clear_fitness(ind.get_pos_x(), ind.get_pos_y());
         }
 
         //Mart that we need an update
@@ -216,10 +219,10 @@ public class PMVisualizer extends FitnessTracker {
 
             //Schedule the chart updates
             m_ex_chart.schedule_update(ex_ftn);
-            if (m_is_co_view) {
-                m_co_chart.schedule_update(req_ftn);
+            if (m_is_extend) {
+                m_ext_chart.schedule_update(req_ftn);
             }
-            
+
             //Mark the update as done
             m_is_update = false;
         }
@@ -232,9 +235,9 @@ public class PMVisualizer extends FitnessTracker {
         //Stop the grid/chart animations
         m_ex_grid_view.stop();
         m_ex_chart.stop();
-        if (m_is_co_view) {
-            m_co_grid_view.stop();
-            m_co_chart.stop();
+        if (m_is_extend) {
+            m_ext_grid_view.stop();
+            m_ext_chart.stop();
         }
         //Stop the progress update
         m_prog_ind.setVisible(false);

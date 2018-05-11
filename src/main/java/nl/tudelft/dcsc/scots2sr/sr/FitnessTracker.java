@@ -151,7 +151,7 @@ public abstract class FitnessTracker implements GridObserver {
      */
     private double get_actual_fitness(final Individual ind) {
         if ((ind.get_fitness() instanceof ExtendedFitness)) {
-            return ((ExtendedFitness) ind.get_fitness()).get_actual_fitness();
+            return ((ExtendedFitness) ind.get_fitness()).get_act_ftn();
         } else {
             return 0.0;
         }
@@ -225,15 +225,15 @@ public abstract class FitnessTracker implements GridObserver {
                 final Individual ind = get_individual(pos_x, pos_y);
                 if (ind != null) {
                     final Fitness ftn = ind.get_fitness();
-                    final double req_ftn = ftn.get_fitness();
-                    final BigDecimal req_ftn_bd = new BigDecimal(req_ftn);
+                    final double ext_ftn = ftn.get_fitness();
+                    final BigDecimal req_ftn_bd = new BigDecimal(ext_ftn);
                     req_sum_bd = req_sum_bd.add(req_ftn_bd);
                     req_sum_sq_bd = req_sum_sq_bd.add(req_ftn_bd.pow(2));
-                    m_req_max = Math.max(m_req_max, req_ftn);
+                    m_req_max = Math.max(m_req_max, ext_ftn);
 
                     final double act_ftn;
                     if (ftn instanceof ExtendedFitness) {
-                        act_ftn = ((ExtendedFitness) ftn).get_actual_fitness();
+                        act_ftn = ((ExtendedFitness) ftn).get_act_ftn();
                     } else {
                         act_ftn = 0;
                     }
