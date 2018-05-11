@@ -233,13 +233,18 @@ public class FXMLController implements Initializable {
      * Is to be called when the application is being stopped
      */
     public void finish() {
-        //Stop the processes
+        //Stop the process manager
+        stop_regression(false);
+
+        //Enable the controls
         enable_ctrls_load(false, true);
-        enable_ctrls_run(false, true, true);
+
         //Store properties,
         m_prop_mgr.save_properties();
+
         //Close the handlers
         stop_logging();
+
         //Stop the executor
         m_executor.shutdownNow();
     }
@@ -645,32 +650,40 @@ public class FXMLController implements Initializable {
 
     /**
      * Stops the process manager if it is active.
+     *
+     * @param is_warn_dlg if true then a warning dialog will be shown
      */
-    private void stop_process_manager() {
+    private void stop_process_manager(final boolean is_warn_dlg) {
         if (m_manager.is_active()) {
+            m_stop_btn.setDisable(true);
+
             m_log.info("Started stopping the process manager.");
-            //Show the alert
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    //Create and show the alert
-                    synchronized (stop_alert_synch) {
-                        stop_alert.show();
+            if (is_warn_dlg) {
+                //Show the alert
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Create and show the alert
+                        synchronized (stop_alert_synch) {
+                            stop_alert.show();
+                        }
                     }
-                }
-            });
+                });
+            }
 
             //Request the manager to stop
             m_manager.stop(TERM_TIME_OUT_SEC);
 
-            //Close the alert if shown
-            Platform.runLater(() -> {
-                synchronized (stop_alert_synch) {
-                    if (stop_alert.isShowing()) {
-                        stop_alert.close();
+            if (is_warn_dlg) {
+                //Close the alert if shown
+                Platform.runLater(() -> {
+                    synchronized (stop_alert_synch) {
+                        if (stop_alert.isShowing()) {
+                            stop_alert.close();
+                        }
                     }
-                }
-            });
+                });
+            }
             m_log.info("Finished stopping the process manager.");
         }
     }
@@ -680,21 +693,13 @@ public class FXMLController implements Initializable {
      *
      * @param is_start true if the process is starting
      * @param is_ok true if the process is finishing and it went without errors
-     * @param is_stop true if the process manager is to be stopped
      */
     private void enable_ctrls_run(
             final boolean is_start,
-            final boolean is_ok,
-            final boolean is_stop) {
+            final boolean is_ok) {
         final Task<Void> task = new Task<Void>() {
             @Override
             protected Void call() throws Exception {
-                //Stop the manager first
-                if (!is_start && is_stop) {
-                    m_stop_btn.setDisable(true);
-                    stop_process_manager();
-                }
-
                 m_load_btn.setDisable(is_start);
                 m_run_btn.setDisable(is_start);
                 m_stop_btn.setDisable(!is_start);
@@ -708,9 +713,22 @@ public class FXMLController implements Initializable {
         m_executor.submit(task);
     }
 
+    /**
+     * Stops the manager and enables the controls
+     *
+     * @param is_warn_dlg if true then a warning dialog will be shown
+     */
+    private void stop_regression(final boolean is_warn_dlg) {
+        //Stop the process manager
+        stop_process_manager(is_warn_dlg);
+
+        //Enable the controls
+        enable_ctrls_run(false, true);
+    }
+
     @FXML
     public void stopRunning(ActionEvent event) {
-        enable_ctrls_run(false, true, true);
+        stop_regression(true);
     }
 
     /**
@@ -837,7 +855,7 @@ public class FXMLController implements Initializable {
                         //Check if we need to stop
                         if (ind.get_fitness().is_one() && is_stop_found) {
                             m_log.info("The 100% fit individual is found, stopping as requested!");
-                            enable_ctrls_run(false, true, false);
+                            enable_ctrls_run(false, true);
                         }
                     }
                 };
@@ -850,7 +868,10 @@ public class FXMLController implements Initializable {
                         num_is_dofs, size_x, size_y, ch_sp_x, ch_sp_y, sel_type,
                         is_child_limit, is_avoid_equal, min_ch_cnt, max_ch_cnt,
                         visualizer, (mgr) -> {
-                            enable_ctrls_run(false, true, mgr.is_active());
+                            //Stop the process manager
+                            stop_regression(true);
+                            //Enable the controls
+                            enable_ctrls_run(false, true);
                         });
 
                 //Instantiate the process manager
@@ -865,7 +886,7 @@ public class FXMLController implements Initializable {
 
     @FXML
     public void startRunning(ActionEvent event) {
-        enable_ctrls_run(true, true, false);
+        enable_ctrls_run(true, true);
 
         Task<Void> task = new Task<Void>() {
             @Override
@@ -881,7 +902,7 @@ public class FXMLController implements Initializable {
                     Platform.runLater(new Runnable() {
                         @Override
                         public void run() {
-                            enable_ctrls_run(false, false, false);
+                            enable_ctrls_run(false, false);
                             m_log.err("Faled to start execution: " + act_th.getMessage());
                             final Alert alert = new Alert(AlertType.ERROR,
                                     "Faled to start execution: " + act_th.getMessage());
