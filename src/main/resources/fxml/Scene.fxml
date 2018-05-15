@@ -250,7 +250,7 @@
                                 <items>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                        <children>
-                                          <TitledPane collapsible="false" prefHeight="540.0" prefWidth="626.0" text="Actual population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TitledPane collapsible="false" prefHeight="540.0" prefWidth="626.0" text="Actual fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
                                                 <AnchorPane>
                                                    <children>
@@ -283,7 +283,7 @@
                                     </AnchorPane>
                                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                        <children>
-                                          <TitledPane collapsible="false" prefHeight="539.0" prefWidth="626.0" text="Extended population fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                          <TitledPane collapsible="false" prefHeight="539.0" prefWidth="626.0" text="Extended fitness/grid" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                              <content>
                                                 <AnchorPane prefHeight="200.0" prefWidth="200.0">
                                                    <children>
