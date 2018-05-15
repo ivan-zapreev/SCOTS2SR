@@ -1200,8 +1200,8 @@ public class FXMLController implements Initializable {
                 if (ScotsFacade.INSTANCE.load_library(lib_file_name)) {
                     m_prop_mgr.remove(PropertyManager.LIB_FILE_NAME_PROP);
                     final Alert alert = new Alert(AlertType.ERROR,
-                            "Faled loading the JNI dynamic library: "
-                            + lib_file_name + ", please choose another one!");
+                            "Faled loading the JNI dynamic library: \n"
+                            + lib_file_name + "\n Please choose another one!");
                     alert.showAndWait();
                     //If loading failed then re-try
                     Platform.runLater(this);

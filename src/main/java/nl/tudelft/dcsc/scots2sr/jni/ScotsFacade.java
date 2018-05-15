@@ -24,12 +24,10 @@ package nl.tudelft.dcsc.scots2sr.jni;
 import java.io.FileNotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tudelft.dcsc.scots2jni.Scots2JNI;
 import nl.tudelft.dcsc.scots2jni.FConfig;
-import nl.tudelft.dcsc.scots2sr.utils.Pair;
 import nl.tudelft.dcsc.sr2jlib.fitness.Fitness;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessComputerClass;
 import nl.tudelft.dcsc.sr2jlib.fitness.FitnessManager;
@@ -89,9 +87,6 @@ public class ScotsFacade extends FitnessComputerClass {
             final String name = Scots2JNI.class.getName();
             m_class = m_loader.loadClassNC(name);
 
-            LOGGER.log(Level.INFO, "Loading the SCOTS2DLL "
-                    + "dynamic library from {0}", lib_file_name);
-
             //Load the Native library within the class as otherwise 
             //it is not accessible through the custom class loader
             try {
@@ -99,8 +94,10 @@ public class ScotsFacade extends FitnessComputerClass {
                 load_lib.invoke(null, lib_file_name);
             } catch (UnsatisfiedLinkError | IllegalAccessException
                     | IllegalArgumentException | InvocationTargetException ex) {
+                final Throwable c_ex = ex.getCause();
                 LOGGER.log(Level.SEVERE, "Native code library '"
-                        + lib_file_name + "' failed to load.\n", ex);
+                        + lib_file_name + "' failed to load.\n",
+                        ((c_ex == null) ? ex: c_ex));
                 return true;
             }
 
@@ -112,8 +109,9 @@ public class ScotsFacade extends FitnessComputerClass {
             m_export_unfit_points = m_class.getMethod("export_unfit_points", String.class);
             m_finish_unfit_export = m_class.getMethod("finish_unfit_export", String.class);
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException ex) {
+            final Throwable c_ex = ex.getCause();
             LOGGER.log(Level.SEVERE, "Failed when loading and instantiating "
-                    + Scots2JNI.class.getName(), ex);
+                    + Scots2JNI.class.getName(), ((c_ex == null) ? ex: c_ex));
             return true;
         }
 
