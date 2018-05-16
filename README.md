@@ -91,11 +91,11 @@ Contains the maun UI log which allow one to monitore the tool's status. Advanced
 ### The left panel
 Is used for configuration options and is split into two tabs.
 
-![The tool's left options](./doc/img/tool_ui_left_opt.png)
+<img style="display: block; margin-left: auto; margin-right: auto; width: 50%" alt="The tool's left options" src="./doc/img/tool_ui_left_opt.png"/>
 
 The first one contains various tool options, including those that influence the symbolic regression.
 
-![The tool's left grammar](./doc/img/tool_ui_left_gr.png)
+<img style="display: block; margin-left: auto; margin-right: auto; width: 50%" alt="The tool's left grammar" src="./doc/img/tool_ui_left_gr.png"/>
 
 The second one is fully devoted to the grammar to be used when generating the controllers. For the ldetails on the possibilities for the grammar please refer to [SR2JLIB](https://github.com/ivan-zapreev/SR2JLIB/).
 
