@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -236,16 +237,27 @@ public class FXMLController implements Initializable {
      */
     public void finish() {
         //Stop the process manager
-        stop_regression(false);
+        stop_regression(true);
+
+        //Remove the process manager
+        m_manager = null;
 
         //Store properties,
         m_prop_mgr.save_properties();
 
-        //Close the handlers
-        stop_logging();
-
         //Stop the executor
         m_executor.shutdownNow();
+        try {
+            if (!m_executor.awaitTermination(TERM_TIME_OUT_SEC, TimeUnit.SECONDS)
+                    || !m_executor.isShutdown() || !m_executor.isTerminated()) {
+                LOGGER.log(Level.WARNING, "Failed to stop the UI executor");
+            }
+        } catch (InterruptedException ex) {
+            LOGGER.log(Level.WARNING, "Failed to stop the UI executor");
+        }
+
+        //Close the handlers
+        stop_logging();
     }
 
     private void enable_ctrls_safe(final boolean is_start) {
@@ -651,17 +663,22 @@ public class FXMLController implements Initializable {
     /**
      * Stops the process manager if it is active.
      *
-     * @param is_warn_dlg if true then a warning dialog will be shown
+     * @param is_wait if true then we shall wait until the process manager is
+     * stopped
      */
-    private void stop_regression(final boolean is_warn_dlg) {
-        if ((m_manager != null) && m_manager.is_active()) {
+    private void stop_regression(final boolean is_wait) {
+        LOGGER.log(Level.INFO, "The regression is requested to "
+                + "be stopped with{0} wait", (is_wait ? "" : "out"));
+
+        if ((m_manager != null) && m_manager.is_active() && !m_manager.is_stopping()) {
+            LOGGER.log(Level.INFO, "The process manager is active and not stopping!");
+
             //Run the stopping process not in the UI thread
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.submit(() -> {
+            m_executor.submit(() -> {
+
+                LOGGER.info("Preparing to request the process manager to stop!");
                 m_stop_btn.setDisable(true);
-                
-                m_log.info("Started stopping the process manager.");
-                if (is_warn_dlg) {
+                if (is_wait) {
                     //Show the alert
                     Platform.runLater(new Runnable() {
                         @Override
@@ -674,15 +691,34 @@ public class FXMLController implements Initializable {
                     });
                 }
 
+                LOGGER.info("Requesting the process manager to stop!");
+
                 //Request the manager to stop
-                m_manager.stop(TERM_TIME_OUT_SEC);
+                m_log.info("Started stopping the process manager.");
+                m_manager.stop(is_wait ? TERM_TIME_OUT_SEC : 1, this);
+                m_log.info("Finished stopping the process manager.");
+
+                //Loop while stopping
+                LOGGER.info("Start waiting for the process manager to stop!");
+                synchronized (this) {
+                    while (m_manager.is_stopping()) {
+                        try {
+                            this.wait(100);
+                            LOGGER.info("Still waiting for the process manager to stop ...");
+                        } catch (InterruptedException ex) {
+                            LOGGER.warning("Interrupted while waiting for the "
+                                    + "Process manager to finish");
+                        }
+                    }
+                }
+                LOGGER.info("Finished waiting for the process manager to stop!");
 
                 Platform.runLater(() -> {
                     //Enable the controls
                     enable_ctrls_run(false, true);
 
                     //Close the alert if shown
-                    if (is_warn_dlg) {
+                    if (is_wait) {
                         synchronized (stop_alert_synch) {
                             if (stop_alert.isShowing()) {
                                 stop_alert.close();
@@ -690,34 +726,27 @@ public class FXMLController implements Initializable {
                         }
                     }
                 });
-                m_log.info("Finished stopping the process manager.");
+
+                LOGGER.info("Finished stopping the process manager.");
             });
+        } else {
+            LOGGER.info("The process manager is not active, no needed to stop!");
         }
     }
 
     /**
      * Disables the interface when started running Symbolic Regression
      *
-     * @param is_start true if the process is starting
+     * @param is_disable true if the process is starting
      * @param is_ok true if the process is finishing and it went without errors
      */
-    private void enable_ctrls_run(
-            final boolean is_start,
-            final boolean is_ok) {
-        final Task<Void> task = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                m_load_btn.setDisable(is_start);
-                m_run_btn.setDisable(is_start);
-                m_stop_btn.setDisable(!is_start);
-                m_save_btn.setDisable(is_start || !is_ok);
+    private void enable_ctrls_run(final boolean is_disable, final boolean is_ok) {
+        m_load_btn.setDisable(is_disable);
+        m_run_btn.setDisable(is_disable);
+        m_stop_btn.setDisable(!is_disable);
+        m_save_btn.setDisable(is_disable || !is_ok);
 
-                enable_non_btn_ctrls(is_start);
-
-                return null;
-            }
-        };
-        m_executor.submit(task);
+        enable_non_btn_ctrls(is_disable);
     }
 
     @FXML
@@ -812,7 +841,6 @@ public class FXMLController implements Initializable {
         final double init_pop_mult = m_init_pop_sld.getValue();
         final boolean is_stop_found = m_is_stop_cbx.isSelected();
         final boolean is_extend = m_is_extend_cbx.isSelected();
-        final boolean is_complex = m_is_compl_cbx.isSelected();
         final SelectionType sel_type = (SelectionType) m_tour_cmb.getValue();
         final boolean is_child_limit = m_is_child_lim_cbx.isSelected();
         final boolean is_avoid_equal = m_is_avoid_equal_cbx.isSelected();
@@ -850,6 +878,7 @@ public class FXMLController implements Initializable {
                         //Check if we need to stop
                         if (ind.get_fitness().is_one() && is_stop_found) {
                             m_log.info("The 100% fit individual is found, stopping as requested!");
+
                             //Stop the process manager
                             stop_regression(true);
                         }
@@ -897,6 +926,7 @@ public class FXMLController implements Initializable {
                         @Override
                         public void run() {
                             enable_ctrls_run(false, false);
+
                             m_log.err("Faled to start execution: " + act_th.getMessage());
                             final Alert alert = new Alert(AlertType.ERROR,
                                     "Faled to start execution: " + act_th.getMessage());

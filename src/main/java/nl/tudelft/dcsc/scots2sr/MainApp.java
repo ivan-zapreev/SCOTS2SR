@@ -33,6 +33,8 @@ import javafx.stage.WindowEvent;
 
 public class MainApp extends Application {
 
+    private FXMLController m_ctrl = null;
+
     @Override
     public void start(Stage stage) throws Exception {
         //Parent root = FXMLLoader.load(getClass().getResource("/fxml/Scene.fxml"));
@@ -48,10 +50,9 @@ public class MainApp extends Application {
         Screen screen = Screen.getPrimary();
         Rectangle2D bounds = screen.getVisualBounds();
 
-        final FXMLController ctrl = ((FXMLController) loader.getController());
-        
+        m_ctrl = ((FXMLController) loader.getController());
+
         stage.setOnCloseRequest((WindowEvent we) -> {
-            ctrl.finish();
         });
 
         stage.setX(bounds.getMinX());
@@ -59,7 +60,16 @@ public class MainApp extends Application {
         stage.setWidth(bounds.getWidth());
         stage.setHeight(bounds.getHeight());
         stage.show();
-        ctrl.after_show();
+        m_ctrl.after_show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        
+        if (m_ctrl != null) {
+            m_ctrl.finish();
+        }
     }
 
     /**
