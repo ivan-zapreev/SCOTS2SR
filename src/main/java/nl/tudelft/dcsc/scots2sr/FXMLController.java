@@ -731,6 +731,8 @@ public class FXMLController implements Initializable {
             });
         } else {
             LOGGER.info("The process manager is not active, no needed to stop!");
+            //Enable the controls
+            enable_ctrls_run(false, true);
         }
     }
 
