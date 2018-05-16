@@ -101,7 +101,7 @@
                                                                               <Insets />
                                                                            </GridPane.margin>
                                                                         </TextArea>
-                                                                                  <Label text="State dim:" GridPane.rowIndex="1" />
+                                                                                  <Label text="State space dimensions:" GridPane.rowIndex="1" />
                                                                                   <ComboBox fx:id="m_dims_cmb" disable="true" prefWidth="230.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                                                            <GridPane.margin>
                                                                               <Insets />

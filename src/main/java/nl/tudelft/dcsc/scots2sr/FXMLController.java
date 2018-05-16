@@ -238,9 +238,6 @@ public class FXMLController implements Initializable {
         //Stop the process manager
         stop_regression(false);
 
-        //Enable the controls
-        enable_ctrls_load(false, true);
-
         //Store properties,
         m_prop_mgr.save_properties();
 
@@ -656,38 +653,45 @@ public class FXMLController implements Initializable {
      *
      * @param is_warn_dlg if true then a warning dialog will be shown
      */
-    private void stop_process_manager(final boolean is_warn_dlg) {
+    private void stop_regression(final boolean is_warn_dlg) {
         if ((m_manager != null) && m_manager.is_active()) {
-            m_stop_btn.setDisable(true);
-
-            m_log.info("Started stopping the process manager.");
-            if (is_warn_dlg) {
-                //Show the alert
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Create and show the alert
-                        synchronized (stop_alert_synch) {
-                            stop_alert.show();
+            //Run the stopping process not in the UI thread
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.submit(() -> {
+                m_stop_btn.setDisable(true);
+                
+                m_log.info("Started stopping the process manager.");
+                if (is_warn_dlg) {
+                    //Show the alert
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Create and show the alert
+                            synchronized (stop_alert_synch) {
+                                stop_alert.show();
+                            }
                         }
-                    }
-                });
-            }
+                    });
+                }
 
-            //Request the manager to stop
-            m_manager.stop(TERM_TIME_OUT_SEC);
+                //Request the manager to stop
+                m_manager.stop(TERM_TIME_OUT_SEC);
 
-            if (is_warn_dlg) {
-                //Close the alert if shown
                 Platform.runLater(() -> {
-                    synchronized (stop_alert_synch) {
-                        if (stop_alert.isShowing()) {
-                            stop_alert.close();
+                    //Enable the controls
+                    enable_ctrls_run(false, true);
+
+                    //Close the alert if shown
+                    if (is_warn_dlg) {
+                        synchronized (stop_alert_synch) {
+                            if (stop_alert.isShowing()) {
+                                stop_alert.close();
+                            }
                         }
                     }
                 });
-            }
-            m_log.info("Finished stopping the process manager.");
+                m_log.info("Finished stopping the process manager.");
+            });
         }
     }
 
@@ -714,19 +718,6 @@ public class FXMLController implements Initializable {
             }
         };
         m_executor.submit(task);
-    }
-
-    /**
-     * Stops the manager and enables the controls
-     *
-     * @param is_warn_dlg if true then a warning dialog will be shown
-     */
-    private void stop_regression(final boolean is_warn_dlg) {
-        //Stop the process manager
-        stop_process_manager(is_warn_dlg);
-
-        //Enable the controls
-        enable_ctrls_run(false, true);
     }
 
     @FXML
@@ -859,7 +850,8 @@ public class FXMLController implements Initializable {
                         //Check if we need to stop
                         if (ind.get_fitness().is_one() && is_stop_found) {
                             m_log.info("The 100% fit individual is found, stopping as requested!");
-                            enable_ctrls_run(false, true);
+                            //Stop the process manager
+                            stop_regression(true);
                         }
                     }
                 };
@@ -874,8 +866,6 @@ public class FXMLController implements Initializable {
                         visualizer, (mgr) -> {
                             //Stop the process manager
                             stop_regression(true);
-                            //Enable the controls
-                            enable_ctrls_run(false, true);
                         });
 
                 //Instantiate the process manager
