@@ -131,33 +131,69 @@ Assuming a BDD controller file: `<path>/<name>.scs` the `<path>/<name>.gp.log` f
 Fitting the BDD controller with function can be started by clicking the **Run** button in the tool's top panel. After that, the tool performs the following steps:
 
 * **Configures the fitness checking back-end** (the dynamic library produced by `SCOTS2DLL` project). This process includes extracting the controller from the BDD into an explicit format, as accessing the data from a BDD is very costly. So this step can take a very long time, depending on the controller's size. The extraction process can be monitors through the corresponding `<path>/<name>.sr.log` file.
-* **Creates and prepares the Grammar objects.** That includes analysis of the provided grammar in turns of its completeness and consistency. This process includes computing the grammar's minimum depth values, which is a recursive process limited by the value of the *"Max. grammar depth"* parameter: ![Maximum Grammar Depth parameter](./doc/img/max_gram_depth.png) If the grammar's minimum depth can not be found within the given *"Max. grammar depth"* then an error is issued: ![Minimum Grammar Depth could not be computed](./doc/img/min_gram_depth.png) This means one of the two: *(i)* the grammar is not properly defined and some non-terminals can not be expanded to finite expressions; *(ii)* the *"Max. grammar depth"* is insufficiently large and has to be increased. The latter is very unlikely, given the default *"Max. grammar depth"* value of `1000`.
+* **Creates and prepares the Grammar objects.** That includes analysis of the provided grammar in turns of its completeness and consistency. This process includes computing the grammar's minimum depth values, which is a recursive process limited by the value of the *"Max. grammar depth"* parameter:
+
+![Maximum Grammar Depth parameter](./doc/img/max_gram_depth.png)
+
+If the grammar's minimum depth can not be found within the given *"Max. grammar depth"* then an error is issued:
+
+![Minimum Grammar Depth could not be computed](./doc/img/min_gram_depth.png)
+
+This means one of the two: *(i)* the grammar is not properly defined and some non-terminals can not be expanded to finite expressions; *(ii)* the *"Max. grammar depth"* is insufficiently large and has to be increased. The latter is very unlikely, given the default *"Max. grammar depth"* value of `1000`.
 * **The Grammar is configured and prepared.** That step includes propagation placement nodes, computing the (non-)terminal probabilities and etc. is typically very fast.
 * **The Process Manager is instantiated and configured.** Here, the main instance of the symbolic regression manager is created and being prepared to run genetic operations.
-* **The Symbolic Regression is started.** First, the initial population is seeded on the greed and then the breeding process begins. The maximum, mean and deviation values of the fitness are started to be shown on the plots as well as the population grid views start being updated: ![The population breeding process](./doc/img/breeding.png) Note that, the population breeding is done in parallel by running the number of parallel tournament selections and reproductions in the different areas of the population grid. The number of parallel processes id defined by the grid size, the number of parallel breeding threads: ![Grid size and number of threads](./doc/img/grid_threads.png) and the child spread (the area around the reproduced individual that is locked due to planting its offsprings) parameters: ![The child spread](./doc/img/child_spread.png)
+* **The Symbolic Regression is started.** First, the initial population is seeded on the greed and then the breeding process begins. The maximum, mean and deviation values of the fitness are started to be shown on the plots as well as the population grid views start being updated:
+
+![The population breeding process](./doc/img/breeding.png)
+
+Note that, the population breeding is done in parallel by running the number of parallel tournament selections and reproductions in the different areas of the population grid. The number of parallel processes id defined by the grid size, the number of parallel breeding threads:
+
+![Grid size and number of threads](./doc/img/grid_threads.png)
+
+and the child spread (the area around the reproduced individual that is locked due to planting its offsprings) parameters:
+
+![The child spread](./doc/img/child_spread.png)
 
 ### Duration of Symbolic Regression
 
-The length of the symbolic regression process depends on the following *"run-length"* parameters: ![The run length](./doc/img/run_length.png)
+The length of the symbolic regression process depends on the following *"run-length"* parameters:
+
+![The run length](./doc/img/run_length.png)
 
 * Enabling *"Endless iterations"* means that there is no limit on the number of times individuals will be let to reproduce. In this case, if *"Stop is found"* is not enabled, the symbolic regression will run *"forever"*, until it is stopped manually by pressing the **Stop** button.
 * Enabling *"Stop is found"* will result in that, as soon as at least one `100%` fit individual is found, the symbolic regression is stopped.
 * If *"Endless iterations"* are disabled then the number of individual reproduction cycles is limited by the *"Reproductions"* parameter value. Note that, a single reproduction of an individual results in multiple offsprings thereof. Moreover, not all of the offsprings will find their place on the grid, i.e. will survive. The latter is defined by the outcome of the local tournament selection with the individuals surrounding the parent individual on the grid. So the *"mutants count"* (horizontal axis) values of the *fitness* plots indicate the total count of individuals successfully settled on the grid during the symbolic regression process. The latter means that *"Reproductions"* and *"mutants count"* are correlated but do not have an identical meaning.
 
 ## **Exporting controller**
-Once symbolic regression is finished or stopped one can either re-start it or export the produced controllers: ![Exporting the controller](./doc/img/export.png) The latter is done by clicking the **Save** button in the tool's top panel and thought the *"File save"* dialog selecting where to store the data. The resulting controller is split into two parts:
+Once symbolic regression is finished or stopped one can either re-start it or export the produced controllers:
+
+![Exporting the controller](./doc/img/export.png)
+
+The latter is done by clicking the **Save** button in the tool's top panel and thought the *"File save"* dialog selecting where to store the data. The resulting controller is split into two parts:
 
 * `<path>/<name>.sym` - the functional part of the controller stored as a text file
 * `<path>/<name>.unfit.scs` and `<path>/<name>.unfit.bdd` - the BDD part storing the unfit states from the original controller's domain.
 
 The former stores the controller's overall fitness percentage and, per input-space dimension, the function representing the discrete controller:
-![The function controller](./doc/img/sym_ctrl.png) The way the controller can be used is explained in the next section in all necessary details, below let us list the steps performed by the application to store the controller:
+
+![The function controller](./doc/img/sym_ctrl.png)
+
+The way the controller can be used is explained in the next section in all necessary details, below let us list the steps performed by the application to store the controller:
 
 * The list of individuals with the maximum *"Actual fitness"* is obtained
-* If the *"Reduce symbolic controller size on save"* option is set: ![The size optimization option](./doc/img/opt_size.png) then the best fit individuals get their size optimized. The latter is a simple procedure trying to reduce size of constant expressions in the controller's functions. Depending on the number and complexity of the best fit individuals, this can take a rather long time but can be easily monitored through the tool's UI log and the progress indicator: ![The size optimization log](./doc/img/opt_size_log.png)
+* If the *"Reduce symbolic controller size on save"* option is set:
+
+![The size optimization option](./doc/img/opt_size.png)
+
+then the best fit individuals get their size optimized. The latter is a simple procedure trying to reduce size of constant expressions in the controller's functions. Depending on the number and complexity of the best fit individuals, this can take a rather long time but can be easily monitored through the tool's UI log and the progress indicator:
+
+![The size optimization log](./doc/img/opt_size_log.png)
+
 * The *"smallest expression size"* individual is selected based on the size of the text size to represent the individual's input-space functions.
 * The chosen function controller is sent to the fitness computing back-end (`SCOTS2DLL`) in order to evaluate its complete fitness and sore the unfit domain points into the file. Note that this can take a long time as requires evaluating the function controller on all domain points. However the process can be easily monitored through the corresponding original controller's log file `<path>/<name>.sr.log`.
-* Once the unfit points have been exported the function controller is stored into the `<path>/<name>.sym` file along with its fitness value. The latter is also shown in the tool's UI dialog: ![The end result summary](./doc/img/end_result.png)
+* Once the unfit points have been exported the function controller is stored into the `<path>/<name>.sym` file along with its fitness value. The latter is also shown in the tool's UI dialog:
+
+![The end result summary](./doc/img/end_result.png)
   
 ## **Using functional controllers**
 
