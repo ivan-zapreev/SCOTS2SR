@@ -62,7 +62,7 @@ The tool's configuration properties are stores in the `config.properties` file l
 
 In order to re-set the properties to the *default* ones it suffices to delete the `config.properties` file.
 
-Each time the tool is started it loads the dynamic native library produced by `SCOTS2DLL`. If the library can not be found or can not be loaded an error message is dislayed, followed by the *File Open Dialog* in which the user is supposed to select the location of the `SCOTS2DLL`'s project dynamic library. The details on why the library could not be loaded, can be found in the Netbeans console log. The proper library location is stored in `config.properties` along with other parameters. Therefore typically, choosing the proper library is needed only the first time the tool is started.
+Each time the tool is started it loads the dynamic native library produced by `SCOTS2DLL`. If the library can not be found or can not be loaded an error message is displayed, followed by the *File Open Dialog* in which the user is supposed to select the location of the `SCOTS2DLL`'s project dynamic library. The details on why the library could not be loaded, can be found in the Netbeans console log. The proper library location is stored in `config.properties` along with other parameters. Therefore typically, choosing the proper library is needed only the first time the tool is started.
 
 ## **Tool's interface**
 The main tool's interface is depicted in the figure below:
@@ -86,7 +86,7 @@ This panel is also used for displaying progress bars, when needed.
 
 ![The tool's bottom](./doc/img/tool_ui_bottom.png)
 
-Contains the maun UI log which allow one to monitore the tool's status. Advanced status details can be obtained by monitoring the log files. The latter is explained in the subsequent sections.
+Contains the main UI log which allow one to monitor the tool's status. Advanced status details can be obtained by monitoring the log files. The latter is explained in the subsequent sections.
 
 ### The left panel
 Is used for configuration options and is split into two tabs.
@@ -97,7 +97,7 @@ The first one contains various tool options, including those that influence the 
 
 ![The tool's left - grammar](./doc/img/tool_ui_left_gr.png)
 
-The second one is fully devoted to the grammar to be used when generating the controllers. For the ldetails on the possibilities for the grammar please refer to [SR2JLIB](https://github.com/ivan-zapreev/SR2JLIB/).
+The second one is fully devoted to the grammar to be used when generating the controllers. For the details on the possibilities for the grammar please refer to [SR2JLIB](https://github.com/ivan-zapreev/SR2JLIB/).
 
 ### The right panel
 
@@ -112,11 +112,11 @@ In order to load a controller, one has to click on the **Load** button and selec
 
 ![Loading the BDD controller](./doc/img/loading_ctrl.png)
 
-Loading the controller can take a rather long time, and is fully controlled by `SCOTSv2.0`/`CUDD`. Once the controller is loaded one is to choose its state space dimentionality. The latter must be known to the user of the tool, and or the one who generated the controller, and can not be guessed by the tool itself, as it can not be derived from the controller's file.
+Loading the controller can take a rather long time, and is fully controlled by `SCOTSv2.0`/`CUDD`. Once the controller is loaded one is to choose its state space dimensionality. The latter must be known to the user of the tool, and or the one who generated the controller, and can not be guessed by the tool itself, as it can not be derived from the controller's file.
 
 ![Selecting the state-space dimensionality](./doc/img/select_ss_dim.png)
 
-Once the state-space dimensionality is chosen, things such *Samaple size percentage* (for Monte-Carlo fitness) are computed and the symbolic regression itself can be started.
+Once the state-space dimensionality is chosen, things such *Sample size percentage* (for Monte-Carlo fitness) are computed and the symbolic regression itself can be started.
 
 ![Computed sample size percentage](./doc/img/sample_size_per.png)
 
@@ -128,16 +128,41 @@ Assuming a BDD controller file: `<path>/<name>.scs` the `<path>/<name>.gp.log` f
 
 ## **Fitting controllers**
 
-Fitting the BDD controller with function can be started by clicking the **Run** button of the top tool's panel. After that the tool performs the following steps:
+Fitting the BDD controller with function can be started by clicking the **Run** button in the tool's top panel. After that, the tool performs the following steps:
 
-* 
+* **Configures the fitness checking back-end** (the dynamic library produced by `SCOTS2DLL` project). This process includes extracting the controller from the BDD into an explicit format, as accessing the data from a BDD is very costly. So this step can take a very long time, depending on the controller's size. The extraction process can be monitors through the corresponding `<path>/<name>.sr.log` file.
+* **Creates and prepares the Grammar objects.** That includes analysis of the provided grammar in turns of its completeness and consistency. This process includes computing the grammar's minimum depth values, which is a recursive process limited by the value of the *"Max. grammar depth"* parameter: ![Maximum Grammar Depth parameter](./doc/img/max_gram_depth.png) If the grammar's minimum depth can not be found within the given *"Max. grammar depth"* then an error is issued: ![Minimum Grammar Depth could not be computed](./doc/img/min_gram_depth.png) This means one of the two: *(i)* the grammar is not properly defined and some non-terminals can not be expanded to finite expressions; *(ii)* the *"Max. grammar depth"* is insufficiently large and has to be increased. The latter is very unlikely, given the default *"Max. grammar depth"* value of `1000`.
+* **The Grammar is configured and prepared.** That step includes propagation placement nodes, computing the (non-)terminal probabilities and etc. is typically very fast.
+* **The Process Manager is instantiated and configured.** Here, the main instance of the symbolic regression manager is created and being prepared to run genetic operations.
+* **The Symbolic Regression is started.** First, the initial population is seeded on the greed and then the breeding process begins. The maximum, mean and deviation values of the fitness are started to be shown on the plots as well as the population grid views start being updated: ![The population breeding process](./doc/img/breeding.png) Note that, the population breeding is done in parallel by running the number of parallel tournament selections and reproductions in the different areas of the population grid. The number of parallel processes id defined by the grid size, the number of parallel breeding threads: ![Grid size and number of threads](./doc/img/grid_threads.png) and the child spread (the area around the reproduced individual that is locked due to planting its offsprings) parameters: ![The child spread](./doc/img/child_spread.png)
+
+### Duration of Symbolic Regression
+
+The length of the symbolic regression process depends on the following *"run-length"* parameters: ![The run length](./doc/img/run_length.png)
+
+* Enabling *"Endless iterations"* means that there is no limit on the number of times individuals will be let to reproduce. In this case, if *"Stop is found"* is not enabled, the symbolic regression will run *"forever"*, until it is stopped manually by pressing the **Stop** button.
+* Enabling *"Stop is found"* will result in that, as soon as at least one `100%` fit individual is found, the symbolic regression is stopped.
+* If *"Endless iterations"* are disabled then the number of individual reproduction cycles is limited by the *"Reproductions"* parameter value. Note that, a single reproduction of an individual results in multiple offsprings thereof. Moreover, not all of the offsprings will find their place on the grid, i.e. will survive. The latter is defined by the outcome of the local tournament selection with the individuals surrounding the parent individual on the grid. So the *"mutants count"* (horizontal axis) values of the *fitness* plots indicate the total count of individuals successfully settled on the grid during the symbolic regression process. The latter means that *"Reproductions"* and *"mutants count"* are correlated but do not have an identical meaning.
 
 ## **Exporting controller**
-The resulted functional controller, along with the unfit domain points, is exported into respectively text and BDD files...
+Once symbolic regression is finished or stopped one can either re-start it or export the produced controllers: ![Exporting the controller](./doc/img/export.png) The latter is done by clicking the **Save** button in the tool's top panel and thought the *"File save"* dialog selecting where to store the data. The resulting controller is split into two parts:
 
+* `<path>/<name>.sym` - the functional part of the controller stored as a text file
+* `<path>/<name>.unfit.scs` and `<path>/<name>.unfit.bdd` - the BDD part storing the unfit states from the original controller's domain.
+
+The former stores the controller's overall fitness percentage and, per input-space dimension, the function representing the discrete controller:
+![The function controller](./doc/img/sym_ctrl.png) The way the controller can be used is explained in the next section in all necessary details, below let us list the steps performed by the application to store the controller:
+
+* The list of individuals with the maximum *"Actual fitness"* is obtained
+* If the *"Reduce symbolic controller size on save"* option is set: ![The size optimization option](./doc/img/opt_size.png) then the best fit individuals get their size optimized. The latter is a simple procedure trying to reduce size of constant expressions in the controller's functions. Depending on the number and complexity of the best fit individuals, this can take a rather long time but can be easily monitored through the tool's UI log and the progress indicator: ![The size optimization log](./doc/img/opt_size_log.png)
+* The *"smallest expression size"* individual is selected based on the size of the text size to represent the individual's input-space functions.
+* The chosen function controller is sent to the fitness computing back-end (`SCOTS2DLL`) in order to evaluate its complete fitness and sore the unfit domain points into the file. Note that this can take a long time as requires evaluating the function controller on all domain points. However the process can be easily monitored through the corresponding original controller's log file `<path>/<name>.sr.log`.
+* Once the unfit points have been exported the function controller is stored into the `<path>/<name>.sym` file along with its fitness value. The latter is also shown in the tool's UI dialog: ![The end result summary](./doc/img/end_result.png)
+  
 ## **Using controllers**
+ (i.e. having discrete grid cell indexes per state-space dimension as inputs and providing )
 
-## **Frequentry Asked Questions**
+## **Frequently Asked Questions**
 Below you will find the list of the frequently asked questions with our answers to them:
 
 > Can I use the tool on Windows platforms?
@@ -150,7 +175,7 @@ Below you will find the list of the frequently asked questions with our answers 
 
 > When do I stop my symbolic regression run?
 
-* Unless the maximum iterations count is set to a concrete value the regression will run forwever, unless a 100% individual is found. The latter is a rare occasion so in principle one can stop symbolic regression at any time. The less fit is the functional controller the smaller will be the domain it is valid for. However the rule of thumb is iterate until the average fitness values flatten out and stop growing. This indicates the convergence of regression the some local maximum.
+* Unless the maximum iterations count is set to a concrete value the regression will run forever, unless a 100% individual is found. The latter is a rare occasion so in principle one can stop symbolic regression at any time. The less fit is the functional controller the smaller will be the domain it is valid for. However the rule of thumb is iterate until the average fitness values flatten out and stop growing. This indicates the convergence of regression the some local maximum.
 
 > How is it possible that the actual fitness can drop?
 
