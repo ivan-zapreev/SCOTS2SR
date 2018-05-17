@@ -159,8 +159,29 @@ The former stores the controller's overall fitness percentage and, per input-spa
 * The chosen function controller is sent to the fitness computing back-end (`SCOTS2DLL`) in order to evaluate its complete fitness and sore the unfit domain points into the file. Note that this can take a long time as requires evaluating the function controller on all domain points. However the process can be easily monitored through the corresponding original controller's log file `<path>/<name>.sr.log`.
 * Once the unfit points have been exported the function controller is stored into the `<path>/<name>.sym` file along with its fitness value. The latter is also shown in the tool's UI dialog: ![The end result summary](./doc/img/end_result.png)
   
-## **Using controllers**
- (i.e. having discrete grid cell indexes per state-space dimension as inputs and providing )
+## **Using functional controllers**
+
+This section is split into two parts. First, since the functional controller fitness will most likely be less than `100%` we will discuss a way to find the sub-domain of the original controller on which the functional controller will be `100%` correct. Second, we will explain how the functional controller can be used in the controlling software to produce input signals. The latter will include discretization and de-discretization steps.
+
+### Computing the functional controller's domain
+
+Please note that, the functional controller's domain is generally speaking the subset of the original one. In order to compute the functional controller's domain one must:
+
+1. Take the unfit states exported by the tool (the `<path>/<name>.unfit.scs` and `<path>/<name>.unfit.bdd` file)
+2. Extend the original property `F` used to generate the controller in `SCOTSv2.0` and extend it as `F && G!<unfit>` where `G` is the *"globally"* operator *"!"* is negation and *"<unfit>"* is the set of unfit points exported.
+3. Then `SCOTSv2.0` must be used to generate the new controller for `F && G!<unfit>`.
+4. The domain of the newly produced controller will be the set of state on which the functional controller for the original property `F` will be `100%` correct.
+
+### Using the functional controller in controlling software
+
+The exported function controller is the controller that is expecting to get the discrete grid cell indexes per state-space dimension as inputs and as a result it will output double values, per output dimension, that after applying `round(abs(.))` to them will be valid grid cell indexes for the output dimensions. 
+
+In other words, the process of using the controller shall be as follows:
+
+1. The *"continuous-space"* state vector is to be transformed into the *"abstract-space"* state vector consisting, in each dimension, of the corresponding grid interval index. To perform this transformation, the discretization parameters employed in `SCOTSv2.0` to produce the original controller must be used. Please note that in each dimension, SCOTS discretizes the state space using the right-half-open intervals  `[x_1, x_2),[x_2, x_3), ... [x_(n-1), x_n]` with their center point indexes starting with `0`. I.e. the `[x_1, x_2)` interval's center point has index `0` and the `[x_(n-1), x_n]` interval's center point has index `n-1`. The length of each interval is the value of the discretization parameter.
+2. The *"abstract-space"* state vector is to be used to valuate the `y_i` arguments of the controller functions stored in `<path>/<name>.sym`. Please note that the index of the argument variables `y_i` starts from `0`.
+3. The result of the controller's function evaluation, in each dimension is to be mapped to into the *"abstract-space"* input vector by applying `round(abs(.))` to it.
+4. The resulting *"abstract-space"* input vector is to be transformed into the *"continuous-space"* input vector by reverting the discretization process of SCOTS (the input space is discretized the same way the state space is). The latter can be done by computing the corresponding grid cell's center point vector using the input-space discretization parameters employed in `SCOTSv2.0` to produce the original controller.
 
 ## **Frequently Asked Questions**
 Below you will find the list of the frequently asked questions with our answers to them:
@@ -171,7 +192,7 @@ Below you will find the list of the frequently asked questions with our answers 
 
 > What does it mean when the average fitness is above the maximum one?
 
-* This is caused by numerical errors in mean computations. Nothing to worry about, this might be fixed in the future releases. For now it is important to remember that the main fitness indicator is the maximum of the *actual fitness* value.
+* This is caused by numerical errors in mean computations. Nothing to worry about, this might be fixed in the future releases. For now it is important to remember that the main fitness indicator is the maximum of the *"actual fitness"* value.
 
 > When do I stop my symbolic regression run?
 
@@ -179,5 +200,5 @@ Below you will find the list of the frequently asked questions with our answers 
 
 > How is it possible that the actual fitness can drop?
 
-* In general if there is just *actual fitness* enabled (no *extended fitness* is used) this should not be happenings, unless it is a software bug. However, if *extended fitness* is enabled then individuals are compared based on it and this can cause an individual having higher *extended fitness* to remove an individual with a higher *actual fitness* from the grid. Typically the situation is restored and the *actual fitness* values are re-gained as the growing *extended fitness* pulls the *actual fitness* up over time.
+* In general if there is just *"actual fitness"* enabled (no *"extended fitness"* is used) this should not be happenings, unless it is a software bug. However, if *"extended fitness"* is enabled then individuals are compared based on it and this can cause an individual having higher *"extended fitness"* to remove an individual with a higher *"actual fitness"* from the grid. Typically the situation is restored and the *"actual fitness"* values are re-gained as the growing *"extended fitness"* pulls the *"actual fitness"* up over time.
 
